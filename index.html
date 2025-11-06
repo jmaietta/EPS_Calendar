@@ -328,15 +328,17 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.78rem;
-      min-width: 560px;
+      table-layout: fixed; /* Force fixed layout for better control */
     }
 
     thead { background: #080911; }
 
     th, td {
-      padding: 7px 8px;
+      padding: 6px 8px; /* Reduced from 7px */
       text-align: left;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     th {
@@ -354,6 +356,7 @@
       letter-spacing: 0.04em;
       font-size: 0.78rem;
       color: var(--accent-strong);
+      width: 70px; /* Tight width */
     }
 
     .mono {
@@ -362,9 +365,22 @@
     }
 
     .name-cell {
-      max-width: 260px;
+      width: 35%; /* Flexible but controlled */
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .date-cell {
+      width: 110px; /* Tight date column */
+    }
+    
+    .eps-cell {
+      width: 90px; /* Tight EPS column */
+    }
+    
+    .ccy-cell {
+      width: 50px; /* Minimal currency column */
     }
 
     .right { text-align: right; }
@@ -758,18 +774,18 @@
           <span id="day-header-date-text"></span>
         </div>
         <div class="day-header-meta">
-          Time window from Alpha Vantage earnings calendar feed.
+          Time window from TEK2day earnings calendar feed.
         </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th style="width: 72px;">Symbol</th>
-              <th>Company</th>
-              <th style="width: 140px;">Report date</th>
-              <th class="right" style="width: 120px;">EPS estimate</th>
-              <th class="right" style="width: 70px;">Ccy</th>
+              <th class="ticker-cell">Symbol</th>
+              <th class="name-cell">Company</th>
+              <th class="date-cell">Report date</th>
+              <th class="right eps-cell">EPS estimate</th>
+              <th class="right ccy-cell">Ccy</th>
             </tr>
           </thead>
           <tbody id="earnings-body">
@@ -1048,7 +1064,7 @@
               <tr>
                 <td class="ticker-cell mono">${r.symbol}</td>
                 <td class="name-cell">${r.name || "&nbsp;"}</td>
-                <td>${label}</td>
+                <td class="date-cell">${label}</td>
                 <td class="right eps-cell ${cls}">
                   ${
                     r.estimate
@@ -1058,7 +1074,7 @@
                       : "&mdash;"
                   }
                 </td>
-                <td class="right mono">${r.currency || "&mdash;"}</td>
+                <td class="right ccy-cell mono">${r.currency || "&mdash;"}</td>
               </tr>
             `;
           })
@@ -1161,7 +1177,7 @@
             : HORIZON === "12month"
             ? "12-month"
             : "3-month") +
-          " Alpha Vantage window";
+          " TEK2day window";
 
         try {
           setStatus("Loading coverage universe…", "loading");
