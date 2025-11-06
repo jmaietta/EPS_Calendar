@@ -328,13 +328,13 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.78rem;
-      table-layout: fixed; /* Force fixed layout for better control */
+      table-layout: fixed;
     }
 
     thead { background: #080911; }
 
     th, td {
-      padding: 6px 8px; /* Reduced from 7px */
+      padding: 6px 8px;
       text-align: left;
       white-space: nowrap;
       overflow: hidden;
@@ -356,7 +356,7 @@
       letter-spacing: 0.04em;
       font-size: 0.78rem;
       color: var(--accent-strong);
-      width: 70px; /* Tight width */
+      width: 70px;
     }
 
     .mono {
@@ -365,22 +365,22 @@
     }
 
     .name-cell {
-      width: 35%; /* Flexible but controlled */
+      width: 35%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    
+
     .date-cell {
-      width: 110px; /* Tight date column */
+      width: 110px;
     }
-    
+
     .eps-cell {
-      width: 90px; /* Tight EPS column */
+      width: 90px;
     }
-    
+
     .ccy-cell {
-      width: 50px; /* Minimal currency column */
+      width: 50px;
     }
 
     .right { text-align: right; }
@@ -453,27 +453,26 @@
 
     @media (max-width: 768px) {
       body { padding: 4px; }
-      .app { 
-        padding: 8px; 
+      .app {
+        padding: 8px;
         border-radius: 12px;
-        gap: 6px; /* Tight spacing */
+        gap: 6px;
       }
-      
-      /* Compact header */
-      .header { 
+
+      .header {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
         gap: 8px;
         padding: 8px 4px;
       }
-      .brand { 
+      .brand {
         flex-direction: row;
         align-items: center;
         gap: 8px;
       }
-      .brand-logo { 
-        width: 40px; 
+      .brand-logo {
+        width: 40px;
         height: 40px;
       }
       .brand-text {
@@ -482,14 +481,13 @@
       .brand-title {
         font-size: 0.95rem;
       }
-      .brand-subline { 
-        display: none; /* Hide subtitle on mobile */
+      .brand-subline {
+        display: none;
       }
-      .meta-header { 
-        display: none; /* Hide meta in header, show in meta-bar */
+      .meta-header {
+        display: none;
       }
 
-      /* Compact controls */
       .controls {
         flex-direction: row;
         align-items: center;
@@ -524,7 +522,6 @@
         font-size: 0.8rem;
       }
 
-      /* Meta bar - single line */
       .meta-bar {
         flex-direction: row;
         justify-content: space-between;
@@ -538,7 +535,6 @@
         gap: 6px;
       }
 
-      /* Compact day header */
       .day-header {
         padding: 8px 10px;
         flex-direction: row;
@@ -556,25 +552,24 @@
         font-size: 0.7rem;
       }
 
-      /* NASDAQ-STYLE ROW LAYOUT - NOT CARDS */
       .table-wrap {
         overflow-x: visible;
       }
-      
+
       table {
         min-width: unset;
         display: block;
         font-size: 0.85rem;
       }
-      
+
       thead {
         display: none;
       }
-      
+
       tbody {
         display: block;
       }
-      
+
       tbody tr {
         display: flex;
         flex-direction: row;
@@ -586,29 +581,27 @@
         border-radius: 0;
         gap: 10px;
       }
-      
+
       tbody tr:last-child {
         border-bottom: none;
       }
-      
+
       tbody tr:hover {
         background: #101320 !important;
       }
-      
+
       tbody tr:active {
         background: #0a0c14 !important;
       }
-      
+
       tbody tr td {
         display: block;
         padding: 0;
         border: none;
         white-space: nowrap;
       }
-      
-      /* NASDAQ-style layout: TICKER | Company | EPS */
+
       tbody tr td:nth-child(1) {
-        /* Ticker - Bold, prominent, left */
         flex: 0 0 auto;
         min-width: 60px;
         font-size: 1rem;
@@ -617,9 +610,8 @@
         color: var(--accent-strong);
         text-transform: uppercase;
       }
-      
+
       tbody tr td:nth-child(2) {
-        /* Company name - flex grow, truncate */
         flex: 1 1 auto;
         min-width: 0;
         font-size: 0.85rem;
@@ -629,26 +621,23 @@
         white-space: nowrap;
         line-height: 1.2;
       }
-      
+
       tbody tr td:nth-child(3) {
-        /* Time - hide on mobile, not critical */
         display: none;
       }
-      
+
       tbody tr td:nth-child(4) {
-        /* EPS - Right aligned, prominent */
         flex: 0 0 auto;
         min-width: 55px;
         text-align: right;
         font-size: 0.95rem;
         font-weight: 700;
       }
-      
+
       tbody tr td:nth-child(4)::before {
-        display: none; /* No label needed */
+        display: none;
       }
 
-      /* Status bar */
       .status-bar {
         padding: 8px 10px;
         flex-direction: row;
@@ -657,13 +646,12 @@
         gap: 8px;
         font-size: 0.7rem;
       }
-      
+
       .status-pill {
         font-size: 0.7rem;
         padding: 4px 8px;
       }
 
-      /* Skeleton rows */
       .skeleton-row td {
         height: 40px !important;
       }
@@ -672,13 +660,12 @@
       }
     }
 
-    /* Extra small devices - even tighter */
     @media (max-width: 400px) {
       body { padding: 2px; }
       .app { padding: 6px; }
-      .brand-logo { 
-        width: 36px; 
-        height: 36px; 
+      .brand-logo {
+        width: 36px;
+        height: 36px;
       }
       .brand-title {
         font-size: 0.9rem;
@@ -813,19 +800,8 @@
   <script>
     (function () {
       // CONFIG
-      const API_KEY = "AVZ9ZLIQ5B351N3O"; // not shown in UI
       const HORIZON = "3month"; // 3month | 6month | 12month
-
-      // Local combined universe: RUS 2000 + S&P 500 + Nasdaq 100
-      // One ticker per line in each CSV, no headers.
-      const UNIVERSE_FILES = ["RUS_2000.csv", "SP500.csv", "NASDAQ100.csv"];
-
-      const API_URL =
-        "https://www.alphavantage.co/query" +
-        "?function=EARNINGS_CALENDAR" +
-        "&horizon=" + encodeURIComponent(HORIZON) +
-        "&apikey=" + encodeURIComponent(API_KEY) +
-        "&datatype=csv";
+      const CACHE_URL = "earnings_cache.json"; // static JSON generated by backend
 
       const dom = {
         search: document.getElementById("search"),
@@ -866,111 +842,48 @@
         }
       }
 
-      function safeSplitCsvLine(line) {
-        return line.split(",");
-      }
-
-      function stripQuotes(s) {
-        if (!s) return s;
-        s = s.trim();
-        if (
-          (s[0] === '"' && s[s.length - 1] === '"') ||
-          (s[0] === "'" && s[s.length - 1] === "'")
-        ) {
-          return s.slice(1, -1);
-        }
-        return s;
-      }
-
-      // Read tickers from local CSV files, one ticker per line
-      async function loadUniverseTickers() {
-        const tickers = new Set();
-        for (const file of UNIVERSE_FILES) {
-          const res = await fetch(file);
-          if (!res.ok) {
-            throw new Error("Unable to load " + file + " (" + res.status + ")");
-          }
-          const text = await res.text();
-          const lines = text.split(/\r?\n/);
-          for (let raw of lines) {
-            if (!raw) continue;
-            // strip BOM if present
-            raw = raw.replace(/^\uFEFF/, "");
-            let t = stripQuotes(raw).trim().toUpperCase();
-            if (!t) continue;
-            tickers.add(t);
-          }
-        }
-        if (!tickers.size) {
-          throw new Error("No tickers found in universe files.");
-        }
-        return tickers;
-      }
-
-      async function loadEarningsCalendar() {
-        const res = await fetch(API_URL);
+      // Load pre-baked earnings data from local cache file
+      async function loadEarningsCache() {
+        const res = await fetch(CACHE_URL, { cache: "no-cache" });
         if (!res.ok) {
-          throw new Error("Earnings calendar request failed (" + res.status + ")");
+          throw new Error("Calendar cache request failed (" + res.status + ")");
         }
-        const raw = (await res.text()).trim();
-        if (!raw) return [];
-
-        if (raw[0] === "{") {
-          let obj;
-          try {
-            obj = JSON.parse(raw);
-          } catch {
-            throw new Error("Unexpected JSON from data provider.");
-          }
-          const msg =
-            obj.Note ||
-            obj["Error Message"] ||
-            obj.Information ||
-            "Unexpected response from data provider.";
-          throw new Error(msg);
+        const data = await res.json();
+        if (!Array.isArray(data)) {
+          throw new Error("Unexpected cache format.");
         }
 
-        const lines = raw.split(/\r?\n/);
-        if (lines.length <= 1) return [];
-
-        const header = safeSplitCsvLine(lines[0]);
-        const idx = {
-          symbol: header.indexOf("symbol"),
-          name: header.indexOf("name"),
-          reportDate: header.indexOf("reportDate"),
-          fiscalDateEnding: header.indexOf("fiscalDateEnding"),
-          estimate: header.indexOf("estimate"),
-          currency: header.indexOf("currency")
-        };
-
-        const rows = [];
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (!line) continue;
-          const cells = safeSplitCsvLine(line);
-          const row = {
-            symbol:
-              idx.symbol >= 0 ? (cells[idx.symbol] || "").trim().toUpperCase() : "",
-            name: idx.name >= 0 ? (cells[idx.name] || "").trim() : "",
-            reportDate:
-              idx.reportDate >= 0 ? (cells[idx.reportDate] || "").trim() : "",
-            fiscalDateEnding:
-              idx.fiscalDateEnding >= 0
-                ? (cells[idx.fiscalDateEnding] || "").trim()
+        return data
+          .map((r) => {
+            const symbol = (r.symbol || "").trim().toUpperCase();
+            const name = (r.name || "").trim();
+            const reportDate = (r.reportDate || "").trim();
+            const estimateRaw =
+              r.estimate === null || r.estimate === undefined
+                ? ""
+                : String(r.estimate).trim();
+            const currency = (r.currency || "").trim();
+            return {
+              symbol,
+              name,
+              reportDate,
+              fiscalDateEnding: (r.fiscalDateEnding || "").trim
+                ? (r.fiscalDateEnding || "").trim()
                 : "",
-            estimate:
-              idx.estimate >= 0 ? (cells[idx.estimate] || "").trim() : "",
-            currency:
-              idx.currency >= 0 ? (cells[idx.currency] || "").trim() : ""
-          };
-          if (row.symbol && row.reportDate) rows.push(row);
-        }
-        return rows;
+              estimate: estimateRaw,
+              currency
+            };
+          })
+          .filter((r) => r.symbol && r.reportDate);
       }
 
       function getTargetDate(offset) {
         const today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+        return new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() + offset
+        );
       }
 
       function formatIsoDate(d) {
@@ -1002,27 +915,27 @@
         });
 
         const label = labelForOffset(state.dayOffset);
-
-        // Check if searching
         const isSearching = state.searchQuery.trim().length > 0;
-        
+
         if (isSearching) {
           dom.currentDayLabel.textContent = "Search Results";
           dom.metaDay.textContent = "Search Results";
           dom.dayHeaderMainText.textContent = "Search Results";
-          dom.dayHeaderDateText.textContent = `for "${state.searchQuery.trim()}"`;
+          dom.dayHeaderDateText.textContent =
+            'for "' + state.searchQuery.trim() + '"';
         } else {
           dom.currentDayLabel.textContent = label;
           dom.metaDay.textContent = label;
           dom.dayHeaderMainText.textContent = label;
-          dom.dayHeaderDateText.textContent = pretty === label ? "" : pretty;
+          dom.dayHeaderDateText.textContent =
+            pretty === label ? "" : pretty;
         }
 
         dom.prevDay.disabled = state.dayOffset <= 0 || isSearching;
         dom.nextDay.disabled = isSearching;
       }
 
-      // Parse YYYY-MM-DD as a *local* calendar date (no UTC shift)
+      // Parse YYYY-MM-DD as local date (no UTC shift)
       function parseIsoLocal(iso) {
         if (!iso) return null;
         const parts = iso.split("-");
@@ -1031,7 +944,7 @@
         const m = Number(parts[1]);
         const d = Number(parts[2]);
         if (!y || !m || !d) return null;
-        return new Date(y, m - 1, d); // local midnight
+        return new Date(y, m - 1, d);
       }
 
       function renderTable(rows) {
@@ -1051,7 +964,7 @@
                   day: "numeric",
                   year: "numeric"
                 })
-              : (iso || "-");
+              : iso || "-";
 
             const est = r.estimate ? Number(r.estimate) : NaN;
             const cls = isNaN(est)
@@ -1085,18 +998,18 @@
 
       function applyFiltersAndRender() {
         const q = state.searchQuery.trim().toLowerCase();
-        
-        // If searching, show ALL dates with matches
-        // If not searching, show only the selected date
+
         let base;
         if (q) {
-          // SEARCH MODE: Show all dates
-          base = state.earningsRaw.filter(
-            (row) => state.universeSet.has(row.symbol)
+          // SEARCH MODE: all dates, but still within T2D universe
+          base = state.earningsRaw.filter((row) =>
+            state.universeSet.has(row.symbol)
           );
         } else {
-          // NORMAL MODE: Show only selected date
-          const targetDateIso = formatIsoDate(getTargetDate(state.dayOffset));
+          // NORMAL MODE: selected date only
+          const targetDateIso = formatIsoDate(
+            getTargetDate(state.dayOffset)
+          );
           base = state.earningsRaw.filter(
             (row) =>
               state.universeSet.has(row.symbol) &&
@@ -1104,7 +1017,6 @@
           );
         }
 
-        // Apply search filter
         const withSearch = q
           ? base.filter(
               (row) =>
@@ -1113,7 +1025,6 @@
             )
           : base;
 
-        // Sort by date first (earliest first), then by symbol
         withSearch.sort((a, b) => {
           const dateCompare = a.reportDate.localeCompare(b.reportDate);
           if (dateCompare !== 0) return dateCompare;
@@ -1123,7 +1034,6 @@
         state.filtered = withSearch;
         renderTable(state.filtered);
 
-        // Update status text
         if (q) {
           dom.statusText.textContent =
             state.filtered.length.toLocaleString() +
@@ -1141,7 +1051,7 @@
       function hookEvents() {
         dom.search.addEventListener("input", (e) => {
           state.searchQuery = e.target.value || "";
-          updateDayUI(); // Update UI to show search mode
+          updateDayUI();
           applyFiltersAndRender();
         });
 
@@ -1169,7 +1079,6 @@
             ? "12 months"
             : "3 months";
 
-        updateDayUI();
         dom.metaRange.textContent =
           "Within " +
           (HORIZON === "6month"
@@ -1179,18 +1088,22 @@
             : "3-month") +
           " TEK2day window";
 
+        updateDayUI();
+
         try {
-          setStatus("Loading coverage universe…", "loading");
-          state.universeSet = await loadUniverseTickers();
+          setStatus("Loading T2D cache…", "loading");
+
+          // Load earnings cache
+          state.earningsRaw = await loadEarningsCache();
+
+          // Build universe set from the cached data
+          state.universeSet = new Set(
+            state.earningsRaw.map((r) => r.symbol)
+          );
           dom.metaUniverse.textContent =
             state.universeSet.size.toLocaleString();
 
-          setStatus("Loading earnings calendar…", "loading");
-          state.earningsRaw = await loadEarningsCalendar();
-
-          const now = new Date();
-          dom.metaUpdated.textContent =
-            "Last refresh: " + now.toLocaleString();
+          dom.metaUpdated.textContent = "Loaded from TEK2day cache";
 
           setStatus("Earnings calendar loaded.", "ok");
           applyFiltersAndRender();
@@ -1201,7 +1114,7 @@
             '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#fecaca;">' +
             (err && err.message
               ? "Data error: " + err.message
-              : "Unknown data error. Check API limits and that RUS_2000.csv, SP500.csv and NASDAQ100.csv are deployed next to this file.") +
+              : "Unknown data error. Check that earnings_cache.json is deployed next to this file.") +
             "</td></tr>";
           dom.metaUniverse.textContent = "error";
         }
