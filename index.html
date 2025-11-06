@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>T2D · Russell 2000 Earnings Calendar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-elevated: #101217;
+      --bg-elevated-soft: #141722;
+      --border: #222633;
+      --border-subtle: #1a1d27;
+      --accent: #ff1a1a;
+      --accent-soft: rgba(255, 26, 26, 0.1);
+      --accent-strong: #ff2a2a;
+      --text: #f5f5f7;
+      --muted: #8b8f9e;
+      --danger: #f97373;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        Inter, Segoe UI, sans-serif;
+      --radius-lg: 14px;
+      --shadow-soft: 0 14px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1100px;
+      background: var(--bg-elevated);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+      padding: 14px 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* HEADER */
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 2px 4px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .brand-title-main {
+      font-weight: 600;
+    }
+
+    .brand-title-sub {
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    .brand-subline {
+      font-size: 0.78rem;
+      color: var(--muted);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .meta-header {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .meta-chip-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .chip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .chip-accent {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #ffe4e4;
+    }
+
+    /* CONTROLS */
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: stretch;
+      padding: 2px 2px 0;
+    }
+
+    .search-wrap {
+      flex: 1 1 180px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 7px 8px 7px 28px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: #05060a;
+      color: var(--text);
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .search-input::placeholder {
+      color: #5e6478;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      border: 2px solid #5e6478;
+    }
+
+    .search-icon::after {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 2px;
+      background: #5e6478;
+      border-radius: 999px;
+      right: -4px;
+      bottom: -2px;
+      transform: rotate(40deg);
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .filter-btn {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated-soft);
+      color: #d4d4dc;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.12s ease-out, border-color 0.12s ease-out,
+        color 0.12s ease-out, transform 0.05s ease-out;
+      white-space: nowrap;
+    }
+
+    .filter-btn span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #666b7a;
+    }
+
+    .filter-btn[data-active="true"] {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #ffe4e4;
+      transform: translateY(-0.5px);
+    }
+
+    .filter-btn[data-active="true"] span.dot {
+      background: var(--accent-strong);
+    }
+
+    /* META BAR */
+
+    .meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 2px 2px 0;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .meta-bar strong {
+      color: #e5e7f2;
+    }
+
+    .meta-right {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    /* TABLE / DATA */
+
+    .data-card {
+      margin-top: 4px;
+      background: #05060a;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .table-wrap::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .table-wrap::-webkit-scrollbar-track {
+      background: #05060a;
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb {
+      background: #2b3040;
+      border-radius: 999px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      min-width: 560px;
+    }
+
+    thead {
+      background: #080911;
+    }
+
+    th,
+    td {
+      padding: 7px 8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      font-weight: 500;
+      color: #9da0b5;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: #05060a;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #080911;
+    }
+
+    tbody tr:hover {
+      background: #101320;
+    }
+
+    .ticker-cell {
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      font-size: 0.78rem;
+      color: var(--accent-strong);
+    }
+
+    .mono {
+      font-family: ui-monospace, Menlo, Monaco, Consolas, "SF Mono",
+        "Roboto Mono", monospace;
+    }
+
+    .name-cell {
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .date-chip {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #2b3040;
+      background: #05060a;
+      font-size: 0.7rem;
+    }
+
+    .date-chip strong {
+      color: #e5e7f2;
+    }
+
+    .date-chip span {
+      color: var(--muted);
+      font-size: 0.66rem;
+    }
+
+    .right {
+      text-align: right;
+    }
+
+    .eps-cell {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .eps-pos {
+      color: #4ade80;
+    }
+
+    .eps-neg {
+      color: var(--danger);
+    }
+
+    .status-bar {
+      padding: 6px 10px 8px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      align-items: center;
+    }
+
+    .status-pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: #080911;
+      color: #d4d4dc;
+      font-size: 0.7rem;
+    }
+
+    .status-pill.ok {
+      border-color: var(--accent);
+      color: #ffe4e4;
+      background: var(--accent-soft);
+    }
+
+    .status-pill.error {
+      border-color: var(--danger);
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.5);
+    }
+
+    .skeleton-row td {
+      position: relative;
+      overflow: hidden;
+      height: 22px;
+    }
+
+    .skeleton-row td::before {
+      content: "";
+      position: absolute;
+      inset: 4px 0;
+      border-radius: 999px;
+      background: linear-gradient(
+        90deg,
+        rgba(30, 32, 44, 0.35) 0%,
+        rgba(48, 52, 70, 0.9) 35%,
+        rgba(30, 32, 44, 0.4) 100%
+      );
+      animation: shimmer 1s linear infinite;
+      transform: translateX(-40%);
+    }
+
+    @keyframes shimmer {
+      100% {
+        transform: translateX(120%);
+      }
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .app {
+        padding: 10px 10px 14px;
+        border-radius: 14px;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .brand {
+        align-items: center;
+      }
+
+      .brand-logo {
+        width: 56px;
+        height: 56px;
+      }
+
+      .meta-header {
+        align-items: flex-start;
+      }
+
+      .brand-subline {
+        white-space: normal;
+      }
+
+      table {
+        font-size: 0.76rem;
+      }
+
+      .ticker-cell {
+        font-size: 0.76rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <!-- Update src if you rename the logo file -->
+        <img
+          src="T2D%20Square%20Black%20(small).png"
+          alt="T2D"
+          class="brand-logo"
+        />
+        <div class="brand-text">
+          <div class="brand-title">
+            <span class="brand-title-main">T2D</span>
+            <span class="brand-title-sub">Russell 2000 Earnings</span>
+          </div>
+          <div class="brand-subline">
+            One-look earnings calendar for the Russell 2000 universe.
+          </div>
+        </div>
+      </div>
+      <div class="meta-header">
+        <div class="meta-chip-row">
+          <div class="chip chip-accent">
+            <span class="chip-dot"></span>
+            Live earnings horizon:
+            <span id="meta-horizon">3 months</span>
+          </div>
+          <div class="chip">
+            Universe: <strong class="mono">IWM</strong>
+          </div>
+        </div>
+        <div id="meta-updated">Last refresh: –</div>
+      </div>
+    </header>
+
+    <section class="controls">
+      <div class="search-wrap">
+        <div class="search-icon"></div>
+        <input
+          id="search"
+          class="search-input"
+          type="search"
+          placeholder="Search by ticker or company"
+          autocomplete="off"
+        />
+      </div>
+      <div class="filters" aria-label="Date filter">
+        <button class="filter-btn" data-filter="all" data-active="true">
+          <span class="dot"></span>All
+        </button>
+        <button class="filter-btn" data-filter="today">
+          <span class="dot"></span>Today
+        </button>
+        <button class="filter-btn" data-filter="week">
+          <span class="dot"></span>7 days
+        </button>
+        <button class="filter-btn" data-filter="month">
+          <span class="dot"></span>30 days
+        </button>
+      </div>
+    </section>
+
+    <section class="meta-bar">
+      <div>
+        Russell 2000 tickers:
+        <strong id="meta-russell">loading…</strong>
+      </div>
+      <div class="meta-right">
+        <span>Horizon function: <span class="mono">earnings_calendar</span></span>
+      </div>
+    </section>
+
+    <section class="data-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 72px;">Ticker</th>
+              <th>Company</th>
+              <th style="width: 130px;">Report date</th>
+              <th class="right" style="width: 110px;">EPS estimate</th>
+              <th class="right" style="width: 70px;">Ccy</th>
+            </tr>
+          </thead>
+          <tbody id="earnings-body">
+            <tr class="skeleton-row">
+              <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr class="skeleton-row">
+              <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr class="skeleton-row">
+              <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="status-bar">
+        <span id="status-text">
+          Initializing earnings calendar…
+        </span>
+        <span class="status-pill" id="status-pill">Loading</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      // CONFIG
+      const API_KEY = "AVZ9ZLIQ5B351N3O"; // not shown in UI
+      const HORIZON = "3month"; // 3month | 6month | 12month
+      const IWM_CSV_PATH = "IWM_holdings.csv";
+
+      const API_URL =
+        "https://www.alphavantage.co/query" +
+        "?function=EARNINGS_CALENDAR" +
+        "&horizon=" +
+        encodeURIComponent(HORIZON) +
+        "&apikey=" +
+        encodeURIComponent(API_KEY) +
+        "&datatype=csv"; // explicit CSV
+
+      const dom = {
+        search: document.getElementById("search"),
+        filterButtons: Array.from(
+          document.querySelectorAll(".filter-btn[data-filter]")
+        ),
+        metaRussell: document.getElementById("meta-russell"),
+        metaUpdated: document.getElementById("meta-updated"),
+        metaHorizon: document.getElementById("meta-horizon"),
+        statusText: document.getElementById("status-text"),
+        statusPill: document.getElementById("status-pill"),
+        tbody: document.getElementById("earnings-body"),
+      };
+
+      const state = {
+        russellSet: new Set(),
+        earningsRaw: [],
+        filtered: [],
+        filterMode: "all",
+        searchQuery: "",
+      };
+
+      function setStatus(text, mode) {
+        dom.statusText.textContent = text;
+        dom.statusPill.classList.remove("ok", "error");
+        if (mode === "ok") {
+          dom.statusPill.textContent = "Live";
+          dom.statusPill.classList.add("ok");
+        } else if (mode === "error") {
+          dom.statusPill.textContent = "Error";
+          dom.statusPill.classList.add("error");
+        } else {
+          dom.statusPill.textContent = "Loading";
+        }
+      }
+
+      function safeSplitCsvLine(line) {
+        // Earnings calendar CSV is simple: comma-separated, no quoted commas.
+        return line.split(",");
+      }
+
+      async function loadRussellTickers() {
+        const res = await fetch(IWM_CSV_PATH);
+        if (!res.ok) {
+          throw new Error(
+            "Unable to load IWM_holdings.csv (" + res.status + ")"
+          );
+        }
+        const text = await res.text();
+        const lines = text.trim().split(/\r?\n/);
+        const tickers = new Set();
+        for (let i = 0; i < lines.length; i++) {
+          const raw = lines[i].trim();
+          if (!raw) continue;
+          const cells = safeSplitCsvLine(raw);
+          const ticker = (cells[0] || "").trim().toUpperCase();
+          if (!ticker || ticker === "TICKER") continue;
+          tickers.add(ticker);
+        }
+        return tickers;
+      }
+
+      async function loadEarningsCalendar() {
+        const res = await fetch(API_URL);
+        if (!res.ok) {
+          throw new Error(
+            "Earnings calendar request failed (" + res.status + ")"
+          );
+        }
+        const text = (await res.text()).trim();
+        if (!text) return [];
+        const lines = text.split(/\r?\n/);
+        if (lines.length <= 1) return [];
+
+        const header = safeSplitCsvLine(lines[0]);
+        const idx = {
+          symbol: header.indexOf("symbol"),
+          name: header.indexOf("name"),
+          reportDate: header.indexOf("reportDate"),
+          fiscalDateEnding: header.indexOf("fiscalDateEnding"),
+          estimate: header.indexOf("estimate"),
+          currency: header.indexOf("currency"),
+        };
+
+        const rows = [];
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          const cells = safeSplitCsvLine(line);
+          const row = {
+            symbol:
+              idx.symbol >= 0 ? (cells[idx.symbol] || "").trim().toUpperCase() : "",
+            name: idx.name >= 0 ? (cells[idx.name] || "").trim() : "",
+            reportDate:
+              idx.reportDate >= 0 ? (cells[idx.reportDate] || "").trim() : "",
+            fiscalDateEnding:
+              idx.fiscalDateEnding >= 0
+                ? (cells[idx.fiscalDateEnding] || "").trim()
+                : "",
+            estimate:
+              idx.estimate >= 0 ? (cells[idx.estimate] || "").trim() : "",
+            currency:
+              idx.currency >= 0 ? (cells[idx.currency] || "").trim() : "",
+          };
+          if (row.symbol && row.reportDate) rows.push(row);
+        }
+        return rows;
+      }
+
+      function parseDate(isoDate) {
+        if (!isoDate) return null;
+        const d = new Date(isoDate + "T00:00:00Z");
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      function formatDateNice(isoDate) {
+        const d = parseDate(isoDate);
+        if (!d) return { label: isoDate || "-", rel: "" };
+        const now = new Date();
+        const base = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+        const t = d.getTime();
+        const deltaDays = Math.round(
+          (t - base.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        const label = d.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+        });
+
+        let rel = "";
+        if (deltaDays === 0) rel = "today";
+        else if (deltaDays === 1) rel = "tomorrow";
+        else if (deltaDays === -1) rel = "yesterday";
+        else if (Math.abs(deltaDays) <= 7)
+          rel = (deltaDays > 0 ? "+" : "") + deltaDays + "d";
+
+        return { label, rel };
+      }
+
+      function withinFilterMode(reportDate) {
+        if (!reportDate) return false;
+        if (state.filterMode === "all") return true;
+
+        const d = parseDate(reportDate);
+        if (!d) return false;
+
+        const dayMs = 24 * 60 * 60 * 1000;
+        const today = new Date();
+        const start = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        );
+        const t = d.getTime();
+
+        if (state.filterMode === "today") {
+          const end = start.getTime() + dayMs;
+          return t >= start.getTime() && t < end;
+        }
+
+        if (state.filterMode === "week") {
+          const end = start.getTime() + 7 * dayMs;
+          return t >= start.getTime() && t < end;
+        }
+
+        if (state.filterMode === "month") {
+          const end = start.getTime() + 30 * dayMs;
+          return t >= start.getTime() && t < end;
+        }
+
+        return true;
+      }
+
+      function renderTable(rows) {
+        if (!rows.length) {
+          dom.tbody.innerHTML =
+            '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#9da0b5;">No earnings match the current filters.</td></tr>';
+          return;
+        }
+
+        const html = rows
+          .map((r) => {
+            const { label, rel } = formatDateNice(r.reportDate);
+            const est = r.estimate ? Number(r.estimate) : NaN;
+            const cls = isNaN(est)
+              ? ""
+              : est < 0
+              ? "eps-neg"
+              : "eps-pos";
+
+            return `
+              <tr>
+                <td class="ticker-cell mono">${r.symbol}</td>
+                <td class="name-cell">${r.name || "&nbsp;"}</td>
+                <td>
+                  <span class="date-chip">
+                    <strong>${label}</strong>
+                    ${rel ? `<span>${rel}</span>` : ""}
+                  </span>
+                </td>
+                <td class="right eps-cell ${cls}">
+                  ${
+                    r.estimate
+                      ? (est < 0 ? "&minus;" : "") +
+                        "$" +
+                        Math.abs(est).toFixed(2)
+                      : "&mdash;"
+                  }
+                </td>
+                <td class="right mono">${r.currency || "&mdash;"}</td>
+              </tr>
+            `;
+          })
+          .join("");
+
+        dom.tbody.innerHTML = html;
+      }
+
+      function applyFiltersAndRender() {
+        const base = state.earningsRaw.filter((row) =>
+          state.russellSet.has(row.symbol)
+        );
+        const withDate = base.filter((row) =>
+          withinFilterMode(row.reportDate)
+        );
+
+        const q = state.searchQuery.trim().toLowerCase();
+        const withSearch = q
+          ? withDate.filter(
+              (row) =>
+                row.symbol.toLowerCase().includes(q) ||
+                (row.name || "").toLowerCase().includes(q)
+            )
+          : withDate;
+
+        withSearch.sort((a, b) => {
+          const da = parseDate(a.reportDate);
+          const db = parseDate(b.reportDate);
+          const ta = da ? da.getTime() : Infinity;
+          const tb = db ? db.getTime() : Infinity;
+          if (ta !== tb) return ta - tb;
+          return a.symbol.localeCompare(b.symbol);
+        });
+
+        state.filtered = withSearch;
+        renderTable(state.filtered);
+
+        dom.statusText.textContent =
+          state.filtered.length.toLocaleString() +
+          " rows · Russell 2000 universe";
+      }
+
+      function hookEvents() {
+        dom.search.addEventListener("input", (e) => {
+          state.searchQuery = e.target.value || "";
+          applyFiltersAndRender();
+        });
+
+        dom.filterButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const mode = btn.getAttribute("data-filter") || "all";
+            state.filterMode = mode;
+            dom.filterButtons.forEach((b) =>
+              b.setAttribute(
+                "data-active",
+                b === btn ? "true" : "false"
+              )
+            );
+            applyFiltersAndRender();
+          });
+        });
+      }
+
+      async function boot() {
+        hookEvents();
+
+        dom.metaHorizon.textContent =
+          HORIZON === "6month"
+            ? "6 months"
+            : HORIZON === "12month"
+            ? "12 months"
+            : "3 months";
+
+        try {
+          setStatus("Loading Russell 2000 universe…", "loading");
+          state.russellSet = await loadRussellTickers();
+          dom.metaRussell.textContent =
+            state.russellSet.size.toLocaleString();
+
+          setStatus("Loading earnings calendar…", "loading");
+          state.earningsRaw = await loadEarningsCalendar();
+
+          const now = new Date();
+          dom.metaUpdated.textContent =
+            "Last refresh: " + now.toLocaleString();
+
+          setStatus("Earnings calendar loaded.", "ok");
+          applyFiltersAndRender();
+        } catch (err) {
+          console.error(err);
+          setStatus("Failed to load data.", "error");
+          dom.tbody.innerHTML =
+            '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#fecaca;">' +
+            "Check API limits, the horizon setting, and that IWM_holdings.csv is deployed alongside this file." +
+            "</td></tr>";
+          dom.metaRussell.textContent = "error";
+        }
+      }
+
+      boot();
+    })();
+  </script>
+</body>
+</html>
