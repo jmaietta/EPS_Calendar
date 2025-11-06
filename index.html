@@ -605,7 +605,7 @@
       // CONFIG
       const API_KEY = "AVZ9ZLIQ5B351N3O"; // not shown in UI
       const HORIZON = "3month"; // 3month | 6month | 12month
-      const IWM_CSV_PATH = "IWM_holdings.csv";
+      const UNIVERSE_FILE = "RUS_2000.csv"; // <-- new universe file
 
       const API_URL =
         "https://www.alphavantage.co/query" +
@@ -652,39 +652,43 @@
       }
 
       function safeSplitCsvLine(line) {
-        // Earnings calendar CSV is simple: comma-separated, no quoted commas.
         return line.split(",");
       }
 
-      async function loadRussellTickers() {
-        const res = await fetch(IWM_CSV_PATH);
-        if (!res.ok) {
-          throw new Error(
-            "Unable to load IWM_holdings.csv (" + res.status + ")"
-          );
+      function stripQuotes(s) {
+        if (!s) return s;
+        s = s.trim();
+        if (
+          (s[0] === '"' && s[s.length - 1] === '"') ||
+          (s[0] === "'" && s[s.length - 1] === "'")
+        ) {
+          return s.slice(1, -1);
         }
-        const text = await res.text();
-        const lines = text.trim().split(/\r?\n/);
-        if (!lines.length) throw new Error("IWM_holdings.csv is empty.");
+        return s;
+      }
 
-        // detect which column is Ticker
-        const headerCells = safeSplitCsvLine(lines[0]).map((c) =>
-          c.trim().toLowerCase()
-        );
-        let tickerIdx = headerCells.indexOf("ticker");
-        if (tickerIdx < 0) tickerIdx = 0;
+      // NEW: load tickers from simple one-per-line RUS_2000.csv
+      async function loadRussellTickers() {
+        const res = await fetch(UNIVERSE_FILE);
+        if (!res.ok) {
+          throw new Error("Unable to load " + UNIVERSE_FILE + " (" + res.status + ")");
+        }
+
+        const text = await res.text();
+        const lines = text.split(/\r?\n/);
 
         const tickers = new Set();
-        for (let i = 1; i < lines.length; i++) {
-          const raw = lines[i].trim();
+        for (let raw of lines) {
           if (!raw) continue;
-          const cells = safeSplitCsvLine(raw);
-          const ticker = (cells[tickerIdx] || "").trim().toUpperCase();
-          if (!ticker || ticker === "TICKER") continue;
-          tickers.add(ticker);
+          // Remove BOM if present on first line
+          raw = raw.replace(/^\uFEFF/, "");
+          let t = stripQuotes(raw).trim().toUpperCase();
+          if (!t) continue;
+          tickers.add(t);
         }
+
         if (!tickers.size) {
-          throw new Error("No tickers found in IWM_holdings.csv.");
+          throw new Error("No tickers found in " + UNIVERSE_FILE + ".");
         }
         return tickers;
       }
@@ -954,7 +958,7 @@
             '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#fecaca;">' +
             (err && err.message
               ? "Data error: " + err.message
-              : "Unknown data error. Check API limits and that IWM_holdings.csv is deployed next to this file.") +
+              : "Unknown data error. Check API limits and that RUS_2000.csv is deployed next to this file.") +
             "</td></tr>";
           dom.metaRussell.textContent = "error";
         }
