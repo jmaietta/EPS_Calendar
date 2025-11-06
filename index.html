@@ -566,7 +566,9 @@
       // CONFIG
       const API_KEY = "AVZ9ZLIQ5B351N3O"; // not shown in UI
       const HORIZON = "3month"; // 3month | 6month | 12month
-      const UNIVERSE_FILES = ["RUS_2000.csv", "SP500.csv"]; // one ticker per line
+
+      // Local combined universe: Russell 2000 + S&P 500, no index labels in UI
+      const UNIVERSE_FILES = ["RUS_2000.csv", "SP500.csv"]; // one ticker per line each
 
       const API_URL =
         "https://www.alphavantage.co/query" +
@@ -630,6 +632,7 @@
         return s;
       }
 
+      // Read tickers from local CSV files, one ticker per line
       async function loadUniverseTickers() {
         const tickers = new Set();
         for (const file of UNIVERSE_FILES) {
@@ -641,7 +644,8 @@
           const lines = text.split(/\r?\n/);
           for (let raw of lines) {
             if (!raw) continue;
-            raw = raw.replace(/^\uFEFF/, ""); // strip BOM
+            // strip BOM if present
+            raw = raw.replace(/^\uFEFF/, "");
             let t = stripQuotes(raw).trim().toUpperCase();
             if (!t) continue;
             tickers.add(t);
@@ -716,8 +720,7 @@
 
       function getTargetDate(offset) {
         const today = new Date();
-        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
-        return d;
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
       }
 
       function formatIsoDate(d) {
@@ -768,9 +771,7 @@
         const html = rows
           .map((r) => {
             const iso = r.reportDate;
-            const d = iso
-              ? new Date(iso + "T00:00:00Z")
-              : null;
+            const d = iso ? new Date(iso + "T00:00:00Z") : null;
             const label = d
               ? d.toLocaleDateString(undefined, {
                   month: "short",
