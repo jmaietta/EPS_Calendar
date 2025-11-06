@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>T2D · Russell 2000 Earnings Calendar</title>
+  <title>T2D Earnings Calendar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -23,9 +23,7 @@
       --shadow-soft: 0 14px 40px rgba(0, 0, 0, 0.7);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
@@ -166,7 +164,7 @@
     }
 
     .search-wrap {
-      flex: 1 1 180px;
+      flex: 1 1 200px;
       position: relative;
     }
 
@@ -208,44 +206,49 @@
       transform: rotate(40deg);
     }
 
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
+    /* DATE NAV */
 
-    .filter-btn {
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      background: var(--bg-elevated-soft);
-      color: #d4d4dc;
-      font-size: 0.75rem;
-      cursor: pointer;
+    .date-nav {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: background 0.12s ease-out, border-color 0.12s ease-out,
-        color 0.12s ease-out, transform 0.05s ease-out;
-      white-space: nowrap;
-    }
-
-    .filter-btn span.dot {
-      width: 6px;
-      height: 6px;
+      padding: 2px;
       border-radius: 999px;
-      background: #666b7a;
+      background: #05060a;
+      border: 1px solid var(--border-subtle);
+      flex-shrink: 0;
     }
 
-    .filter-btn[data-active="true"] {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-      color: #ffe4e4;
-      transform: translateY(-0.5px);
+    .nav-btn {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      background: transparent;
+      color: #d4d4dc;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      padding: 0;
     }
 
-    .filter-btn[data-active="true"] span.dot {
-      background: var(--accent-strong);
+    .nav-btn:hover:not(:disabled) {
+      background: #181b26;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .date-label {
+      padding: 0 8px;
+      font-size: 0.8rem;
+      color: #e5e7f2;
+      white-space: nowrap;
     }
 
     /* META BAR */
@@ -281,20 +284,41 @@
       overflow: hidden;
     }
 
+    .day-header {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      background: #080911;
+    }
+
+    .day-header-main {
+      font-size: 0.86rem;
+      font-weight: 500;
+    }
+
+    .day-header-main span {
+      color: var(--muted);
+      font-weight: 400;
+      margin-left: 6px;
+      font-size: 0.74rem;
+    }
+
+    .day-header-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
     .table-wrap {
       width: 100%;
       overflow-x: auto;
       scrollbar-width: thin;
     }
 
-    .table-wrap::-webkit-scrollbar {
-      height: 6px;
-    }
-
-    .table-wrap::-webkit-scrollbar-track {
-      background: #05060a;
-    }
-
+    .table-wrap::-webkit-scrollbar { height: 6px; }
+    .table-wrap::-webkit-scrollbar-track { background: #05060a; }
     .table-wrap::-webkit-scrollbar-thumb {
       background: #2b3040;
       border-radius: 999px;
@@ -307,12 +331,9 @@
       min-width: 560px;
     }
 
-    thead {
-      background: #080911;
-    }
+    thead { background: #080911; }
 
-    th,
-    td {
+    th, td {
       padding: 7px 8px;
       text-align: left;
       white-space: nowrap;
@@ -324,17 +345,9 @@
       border-bottom: 1px solid var(--border-subtle);
     }
 
-    tbody tr:nth-child(odd) {
-      background: #05060a;
-    }
-
-    tbody tr:nth-child(even) {
-      background: #080911;
-    }
-
-    tbody tr:hover {
-      background: #101320;
-    }
+    tbody tr:nth-child(odd) { background: #05060a; }
+    tbody tr:nth-child(even) { background: #080911; }
+    tbody tr:hover { background: #101320; }
 
     .ticker-cell {
       font-weight: 600;
@@ -354,41 +367,11 @@
       text-overflow: ellipsis;
     }
 
-    .date-chip {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 4px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid #2b3040;
-      background: #05060a;
-      font-size: 0.7rem;
-    }
+    .right { text-align: right; }
 
-    .date-chip strong {
-      color: #e5e7f2;
-    }
-
-    .date-chip span {
-      color: var(--muted);
-      font-size: 0.66rem;
-    }
-
-    .right {
-      text-align: right;
-    }
-
-    .eps-cell {
-      font-variant-numeric: tabular-nums;
-    }
-
-    .eps-pos {
-      color: #4ade80;
-    }
-
-    .eps-neg {
-      color: var(--danger);
-    }
+    .eps-cell { font-variant-numeric: tabular-nums; }
+    .eps-pos { color: #4ade80; }
+    .eps-neg { color: var(--danger); }
 
     .status-bar {
       padding: 6px 10px 8px;
@@ -453,43 +436,22 @@
     /* MOBILE */
 
     @media (max-width: 768px) {
-      body {
-        padding: 10px;
-      }
+      body { padding: 10px; }
+      .app { padding: 10px 10px 14px; border-radius: 14px; }
+      .header { flex-direction: column; align-items: stretch; }
+      .brand { align-items: center; }
+      .brand-logo { width: 56px; height: 56px; }
+      .meta-header { align-items: flex-start; }
+      .brand-subline { white-space: normal; }
+      table { font-size: 0.76rem; }
+      .ticker-cell { font-size: 0.76rem; }
 
-      .app {
-        padding: 10px 10px 14px;
-        border-radius: 14px;
-      }
-
-      .header {
+      .controls {
         flex-direction: column;
         align-items: stretch;
       }
-
-      .brand {
-        align-items: center;
-      }
-
-      .brand-logo {
-        width: 56px;
-        height: 56px;
-      }
-
-      .meta-header {
-        align-items: flex-start;
-      }
-
-      .brand-subline {
-        white-space: normal;
-      }
-
-      table {
-        font-size: 0.76rem;
-      }
-
-      .ticker-cell {
-        font-size: 0.76rem;
+      .date-nav {
+        align-self: flex-start;
       }
     }
   </style>
@@ -498,7 +460,6 @@
   <div class="app">
     <header class="header">
       <div class="brand">
-        <!-- Update src if you rename the logo file -->
         <img
           src="T2D%20Square%20Black%20(small).png"
           alt="T2D"
@@ -507,10 +468,10 @@
         <div class="brand-text">
           <div class="brand-title">
             <span class="brand-title-main">T2D</span>
-            <span class="brand-title-sub">Russell 2000 Earnings</span>
+            <span class="brand-title-sub">Earnings Calendar</span>
           </div>
           <div class="brand-subline">
-            One-look earnings calendar for the Russell 2000 universe.
+            Day-by-day view of upcoming earnings for the T2D universe.
           </div>
         </div>
       </div>
@@ -522,7 +483,7 @@
             <span id="meta-horizon">3 months</span>
           </div>
           <div class="chip">
-            Universe: <strong class="mono">IWM</strong>
+            Coverage size: <strong class="mono" id="meta-universe">–</strong>
           </div>
         </div>
         <div id="meta-updated">Last refresh: –</div>
@@ -536,45 +497,45 @@
           id="search"
           class="search-input"
           type="search"
-          placeholder="Search by ticker or company"
+          placeholder="Search by symbol or company"
           autocomplete="off"
         />
       </div>
-      <div class="filters" aria-label="Date filter">
-        <button class="filter-btn" data-filter="all" data-active="true">
-          <span class="dot"></span>All
-        </button>
-        <button class="filter-btn" data-filter="today">
-          <span class="dot"></span>Today
-        </button>
-        <button class="filter-btn" data-filter="week">
-          <span class="dot"></span>7 days
-        </button>
-        <button class="filter-btn" data-filter="month">
-          <span class="dot"></span>30 days
-        </button>
+      <div class="date-nav">
+        <button id="prev-day" class="nav-btn" aria-label="Previous day">&lsaquo;</button>
+        <div id="current-day-label" class="date-label">Today</div>
+        <button id="next-day" class="nav-btn" aria-label="Next day">&rsaquo;</button>
       </div>
     </section>
 
     <section class="meta-bar">
       <div>
-        Russell 2000 tickers:
-        <strong id="meta-russell">loading…</strong>
+        Showing earnings for:
+        <strong id="meta-day">Today</strong>
       </div>
       <div class="meta-right">
-        <span>Function: <span class="mono">earnings_calendar</span></span>
+        <span class="mono" id="meta-range">Within 3-month data window</span>
       </div>
     </section>
 
     <section class="data-card">
+      <div class="day-header">
+        <div class="day-header-main">
+          <span id="day-header-main-text">Today</span>
+          <span id="day-header-date-text"></span>
+        </div>
+        <div class="day-header-meta">
+          Time window from Alpha Vantage earnings calendar feed.
+        </div>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th style="width: 72px;">Ticker</th>
+              <th style="width: 72px;">Symbol</th>
               <th>Company</th>
-              <th style="width: 130px;">Report date</th>
-              <th class="right" style="width: 110px;">EPS estimate</th>
+              <th style="width: 140px;">Report date</th>
+              <th class="right" style="width: 120px;">EPS estimate</th>
               <th class="right" style="width: 70px;">Ccy</th>
             </tr>
           </thead>
@@ -605,36 +566,38 @@
       // CONFIG
       const API_KEY = "AVZ9ZLIQ5B351N3O"; // not shown in UI
       const HORIZON = "3month"; // 3month | 6month | 12month
-      const UNIVERSE_FILE = "RUS_2000.csv"; // <-- new universe file
+      const UNIVERSE_FILES = ["RUS_2000.csv", "SP500.csv"]; // one ticker per line
 
       const API_URL =
         "https://www.alphavantage.co/query" +
         "?function=EARNINGS_CALENDAR" +
-        "&horizon=" +
-        encodeURIComponent(HORIZON) +
-        "&apikey=" +
-        encodeURIComponent(API_KEY) +
+        "&horizon=" + encodeURIComponent(HORIZON) +
+        "&apikey=" + encodeURIComponent(API_KEY) +
         "&datatype=csv";
 
       const dom = {
         search: document.getElementById("search"),
-        filterButtons: Array.from(
-          document.querySelectorAll(".filter-btn[data-filter]")
-        ),
-        metaRussell: document.getElementById("meta-russell"),
+        metaUniverse: document.getElementById("meta-universe"),
         metaUpdated: document.getElementById("meta-updated"),
         metaHorizon: document.getElementById("meta-horizon"),
+        metaDay: document.getElementById("meta-day"),
+        metaRange: document.getElementById("meta-range"),
+        dayHeaderMainText: document.getElementById("day-header-main-text"),
+        dayHeaderDateText: document.getElementById("day-header-date-text"),
         statusText: document.getElementById("status-text"),
         statusPill: document.getElementById("status-pill"),
         tbody: document.getElementById("earnings-body"),
+        prevDay: document.getElementById("prev-day"),
+        nextDay: document.getElementById("next-day"),
+        currentDayLabel: document.getElementById("current-day-label")
       };
 
       const state = {
-        russellSet: new Set(),
+        universeSet: new Set(),
         earningsRaw: [],
         filtered: [],
-        filterMode: "all",
         searchQuery: "",
+        dayOffset: 0 // 0 = today, 1 = tomorrow, etc.
       };
 
       function setStatus(text, mode) {
@@ -667,28 +630,25 @@
         return s;
       }
 
-      // NEW: load tickers from simple one-per-line RUS_2000.csv
-      async function loadRussellTickers() {
-        const res = await fetch(UNIVERSE_FILE);
-        if (!res.ok) {
-          throw new Error("Unable to load " + UNIVERSE_FILE + " (" + res.status + ")");
-        }
-
-        const text = await res.text();
-        const lines = text.split(/\r?\n/);
-
+      async function loadUniverseTickers() {
         const tickers = new Set();
-        for (let raw of lines) {
-          if (!raw) continue;
-          // Remove BOM if present on first line
-          raw = raw.replace(/^\uFEFF/, "");
-          let t = stripQuotes(raw).trim().toUpperCase();
-          if (!t) continue;
-          tickers.add(t);
+        for (const file of UNIVERSE_FILES) {
+          const res = await fetch(file);
+          if (!res.ok) {
+            throw new Error("Unable to load " + file + " (" + res.status + ")");
+          }
+          const text = await res.text();
+          const lines = text.split(/\r?\n/);
+          for (let raw of lines) {
+            if (!raw) continue;
+            raw = raw.replace(/^\uFEFF/, ""); // strip BOM
+            let t = stripQuotes(raw).trim().toUpperCase();
+            if (!t) continue;
+            tickers.add(t);
+          }
         }
-
         if (!tickers.size) {
-          throw new Error("No tickers found in " + UNIVERSE_FILE + ".");
+          throw new Error("No tickers found in universe files.");
         }
         return tickers;
       }
@@ -696,14 +656,11 @@
       async function loadEarningsCalendar() {
         const res = await fetch(API_URL);
         if (!res.ok) {
-          throw new Error(
-            "Earnings calendar request failed (" + res.status + ")"
-          );
+          throw new Error("Earnings calendar request failed (" + res.status + ")");
         }
         const raw = (await res.text()).trim();
         if (!raw) return [];
 
-        // If provider sends JSON (rate limit / error), surface message
         if (raw[0] === "{") {
           let obj;
           try {
@@ -729,7 +686,7 @@
           reportDate: header.indexOf("reportDate"),
           fiscalDateEnding: header.indexOf("fiscalDateEnding"),
           estimate: header.indexOf("estimate"),
-          currency: header.indexOf("currency"),
+          currency: header.indexOf("currency")
         };
 
         const rows = [];
@@ -750,92 +707,78 @@
             estimate:
               idx.estimate >= 0 ? (cells[idx.estimate] || "").trim() : "",
             currency:
-              idx.currency >= 0 ? (cells[idx.currency] || "").trim() : "",
+              idx.currency >= 0 ? (cells[idx.currency] || "").trim() : ""
           };
           if (row.symbol && row.reportDate) rows.push(row);
         }
         return rows;
       }
 
-      function parseDate(isoDate) {
-        if (!isoDate) return null;
-        const d = new Date(isoDate + "T00:00:00Z");
-        return isNaN(d.getTime()) ? null : d;
+      function getTargetDate(offset) {
+        const today = new Date();
+        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+        return d;
       }
 
-      function formatDateNice(isoDate) {
-        const d = parseDate(isoDate);
-        if (!d) return { label: isoDate || "-", rel: "" };
-        const now = new Date();
-        const base = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate()
-        );
-        const t = d.getTime();
-        const deltaDays = Math.round(
-          (t - base.getTime()) / (1000 * 60 * 60 * 24)
-        );
+      function formatIsoDate(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      }
 
-        const label = d.toLocaleDateString(undefined, {
+      function labelForOffset(offset) {
+        if (offset === 0) return "Today";
+        if (offset === 1) return "Tomorrow";
+        if (offset === -1) return "Yesterday";
+        const d = getTargetDate(offset);
+        return d.toLocaleDateString(undefined, {
+          weekday: "short",
+          month: "short",
+          day: "numeric"
+        });
+      }
+
+      function updateDayUI() {
+        const d = getTargetDate(state.dayOffset);
+        const pretty = d.toLocaleDateString(undefined, {
+          weekday: "long",
           month: "short",
           day: "numeric",
+          year: "numeric"
         });
 
-        let rel = "";
-        if (deltaDays === 0) rel = "today";
-        else if (deltaDays === 1) rel = "tomorrow";
-        else if (deltaDays === -1) rel = "yesterday";
-        else if (Math.abs(deltaDays) <= 7)
-          rel = (deltaDays > 0 ? "+" : "") + deltaDays + "d";
+        const label = labelForOffset(state.dayOffset);
 
-        return { label, rel };
-      }
+        dom.currentDayLabel.textContent = label;
+        dom.metaDay.textContent = label;
+        dom.dayHeaderMainText.textContent = label;
+        dom.dayHeaderDateText.textContent = pretty === label ? "" : pretty;
 
-      function withinFilterMode(reportDate) {
-        if (!reportDate) return false;
-        if (state.filterMode === "all") return true;
-
-        const d = parseDate(reportDate);
-        if (!d) return false;
-
-        const dayMs = 24 * 60 * 60 * 1000;
-        const today = new Date();
-        const start = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate()
-        );
-        const t = d.getTime();
-
-        if (state.filterMode === "today") {
-          const end = start.getTime() + dayMs;
-          return t >= start.getTime() && t < end;
-        }
-
-        if (state.filterMode === "week") {
-          const end = start.getTime() + 7 * dayMs;
-          return t >= start.getTime() && t < end;
-        }
-
-        if (state.filterMode === "month") {
-          const end = start.getTime() + 30 * dayMs;
-          return t >= start.getTime() && t < end;
-        }
-
-        return true;
+        dom.prevDay.disabled = state.dayOffset <= 0;
       }
 
       function renderTable(rows) {
         if (!rows.length) {
           dom.tbody.innerHTML =
-            '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#9da0b5;">No upcoming earnings matched the current universe / filters.</td></tr>';
+            '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#9da0b5;">No earnings scheduled for this date in the T2D universe.</td></tr>';
           return;
         }
 
         const html = rows
           .map((r) => {
-            const { label, rel } = formatDateNice(r.reportDate);
+            const iso = r.reportDate;
+            const d = iso
+              ? new Date(iso + "T00:00:00Z")
+              : null;
+            const label = d
+              ? d.toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric"
+                })
+              : (iso || "-");
+
             const est = r.estimate ? Number(r.estimate) : NaN;
             const cls = isNaN(est)
               ? ""
@@ -847,12 +790,7 @@
               <tr>
                 <td class="ticker-cell mono">${r.symbol}</td>
                 <td class="name-cell">${r.name || "&nbsp;"}</td>
-                <td>
-                  <span class="date-chip">
-                    <strong>${label}</strong>
-                    ${rel ? `<span>${rel}</span>` : ""}
-                  </span>
-                </td>
+                <td>${label}</td>
                 <td class="right eps-cell ${cls}">
                   ${
                     r.estimate
@@ -872,37 +810,34 @@
       }
 
       function applyFiltersAndRender() {
-        const base = state.earningsRaw.filter((row) =>
-          state.russellSet.has(row.symbol)
-        );
-        const withDate = base.filter((row) =>
-          withinFilterMode(row.reportDate)
+        const targetDateIso = formatIsoDate(getTargetDate(state.dayOffset));
+
+        const base = state.earningsRaw.filter(
+          (row) =>
+            state.universeSet.has(row.symbol) &&
+            row.reportDate === targetDateIso
         );
 
         const q = state.searchQuery.trim().toLowerCase();
         const withSearch = q
-          ? withDate.filter(
+          ? base.filter(
               (row) =>
                 row.symbol.toLowerCase().includes(q) ||
                 (row.name || "").toLowerCase().includes(q)
             )
-          : withDate;
+          : base;
 
-        withSearch.sort((a, b) => {
-          const da = parseDate(a.reportDate);
-          const db = parseDate(b.reportDate);
-          const ta = da ? da.getTime() : Infinity;
-          const tb = db ? db.getTime() : Infinity;
-          if (ta !== tb) return ta - tb;
-          return a.symbol.localeCompare(b.symbol);
-        });
+        withSearch.sort((a, b) => a.symbol.localeCompare(b.symbol));
 
         state.filtered = withSearch;
         renderTable(state.filtered);
 
+        const dayLabel = labelForOffset(state.dayOffset);
         dom.statusText.textContent =
           state.filtered.length.toLocaleString() +
-          " rows · Russell 2000 universe";
+          " rows · " +
+          dayLabel +
+          " · T2D coverage";
       }
 
       function hookEvents() {
@@ -911,18 +846,17 @@
           applyFiltersAndRender();
         });
 
-        dom.filterButtons.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const mode = btn.getAttribute("data-filter") || "all";
-            state.filterMode = mode;
-            dom.filterButtons.forEach((b) =>
-              b.setAttribute(
-                "data-active",
-                b === btn ? "true" : "false"
-              )
-            );
-            applyFiltersAndRender();
-          });
+        dom.prevDay.addEventListener("click", () => {
+          if (state.dayOffset <= 0) return;
+          state.dayOffset -= 1;
+          updateDayUI();
+          applyFiltersAndRender();
+        });
+
+        dom.nextDay.addEventListener("click", () => {
+          state.dayOffset += 1;
+          updateDayUI();
+          applyFiltersAndRender();
         });
       }
 
@@ -936,11 +870,21 @@
             ? "12 months"
             : "3 months";
 
+        updateDayUI();
+        dom.metaRange.textContent =
+          "Within " +
+          (HORIZON === "6month"
+            ? "6-month"
+            : HORIZON === "12month"
+            ? "12-month"
+            : "3-month") +
+          " Alpha Vantage window";
+
         try {
-          setStatus("Loading Russell 2000 universe…", "loading");
-          state.russellSet = await loadRussellTickers();
-          dom.metaRussell.textContent =
-            state.russellSet.size.toLocaleString();
+          setStatus("Loading coverage universe…", "loading");
+          state.universeSet = await loadUniverseTickers();
+          dom.metaUniverse.textContent =
+            state.universeSet.size.toLocaleString();
 
           setStatus("Loading earnings calendar…", "loading");
           state.earningsRaw = await loadEarningsCalendar();
@@ -958,9 +902,9 @@
             '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#fecaca;">' +
             (err && err.message
               ? "Data error: " + err.message
-              : "Unknown data error. Check API limits and that RUS_2000.csv is deployed next to this file.") +
+              : "Unknown data error. Check API limits and that RUS_2000.csv and SP500.csv are deployed next to this file.") +
             "</td></tr>";
-          dom.metaRussell.textContent = "error";
+          dom.metaUniverse.textContent = "error";
         }
       }
 
