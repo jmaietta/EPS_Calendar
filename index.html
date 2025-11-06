@@ -433,111 +433,114 @@
       }
     }
 
-    /* MOBILE - CARD-BASED LAYOUT */
+    /* MOBILE - NASDAQ-STYLE COMPACT LAYOUT */
 
     @media (max-width: 768px) {
-      body { padding: 8px; }
+      body { padding: 4px; }
       .app { 
-        padding: 12px; 
-        border-radius: 16px;
-        gap: 10px; /* Reduced from 16px */
+        padding: 8px; 
+        border-radius: 12px;
+        gap: 6px; /* Tight spacing */
       }
       
-      /* Header improvements */
+      /* Compact header */
       .header { 
-        flex-direction: column; 
-        align-items: stretch;
-        gap: 12px; /* Reduced from 16px */
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 4px;
       }
       .brand { 
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        text-align: center;
+        gap: 8px;
       }
       .brand-logo { 
-        width: 72px; 
-        height: 72px;
-        margin-bottom: 8px;
+        width: 40px; 
+        height: 40px;
       }
       .brand-text {
-        align-items: center;
-      }
-      .brand-title {
-        font-size: 1.1rem;
-      }
-      .brand-subline { 
-        white-space: normal;
-        text-align: center;
-        font-size: 0.85rem;
-      }
-      .meta-header { 
-        align-items: center;
-      }
-      .meta-chip-row {
-        justify-content: center;
-      }
-
-      /* Search and controls - Better touch targets, NO GAPS */
-      .controls {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px; /* Reduced from 12px */
-      }
-      .search-wrap {
-        margin-bottom: 0; /* Remove any margin */
-      }
-      .search-input {
-        padding: 12px 12px 12px 40px;
-        font-size: 1rem;
-        border-radius: 12px;
-      }
-      .search-icon {
-        left: 14px;
-        width: 14px;
-        height: 14px;
-      }
-      .date-nav {
-        align-self: center;
-        padding: 4px;
-        margin-top: 0; /* Remove any top margin */
-      }
-      .nav-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 1.1rem;
-      }
-      .date-label {
-        padding: 0 14px;
-        font-size: 0.95rem;
-      }
-
-      /* Meta bar - compact */
-      .meta-bar {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 6px; /* Reduced from 8px */
-        padding: 0; /* Remove extra padding */
-      }
-      .meta-right {
-        justify-content: center;
-      }
-
-      /* Day header */
-      .day-header {
-        padding: 12px 14px;
-        flex-direction: column;
-        gap: 4px;
         align-items: flex-start;
       }
-      .day-header-main {
-        font-size: 1rem;
+      .brand-title {
+        font-size: 0.95rem;
       }
-      .day-header-meta {
+      .brand-subline { 
+        display: none; /* Hide subtitle on mobile */
+      }
+      .meta-header { 
+        display: none; /* Hide meta in header, show in meta-bar */
+      }
+
+      /* Compact controls */
+      .controls {
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        padding: 0;
+      }
+      .search-wrap {
+        flex: 1;
+        margin: 0;
+      }
+      .search-input {
+        padding: 8px 8px 8px 32px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+      }
+      .search-icon {
+        left: 10px;
+        width: 12px;
+        height: 12px;
+      }
+      .date-nav {
+        padding: 2px;
+        flex-shrink: 0;
+      }
+      .nav-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9rem;
+      }
+      .date-label {
+        padding: 0 8px;
         font-size: 0.8rem;
       }
 
-      /* CARD-BASED LAYOUT INSTEAD OF TABLE */
+      /* Meta bar - single line */
+      .meta-bar {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 4px;
+        font-size: 0.7rem;
+      }
+      .meta-right {
+        justify-content: flex-end;
+        gap: 6px;
+      }
+
+      /* Compact day header */
+      .day-header {
+        padding: 8px 10px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .day-header-main {
+        font-size: 0.85rem;
+      }
+      .day-header-main span {
+        font-size: 0.7rem;
+      }
+      .day-header-meta {
+        font-size: 0.7rem;
+      }
+
+      /* NASDAQ-STYLE ROW LAYOUT - NOT CARDS */
       .table-wrap {
         overflow-x: visible;
       }
@@ -545,10 +548,11 @@
       table {
         min-width: unset;
         display: block;
+        font-size: 0.85rem;
       }
       
       thead {
-        display: none; /* Hide table headers on mobile */
+        display: none;
       }
       
       tbody {
@@ -556,128 +560,131 @@
       }
       
       tbody tr {
-        display: block;
-        margin-bottom: 10px;
-        padding: 14px;
-        border-radius: 10px;
-        border: 1px solid var(--border-subtle);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 10px 10px;
+        border-bottom: 1px solid var(--border-subtle);
         background: #080911 !important;
+        margin: 0;
+        border-radius: 0;
+        gap: 10px;
+      }
+      
+      tbody tr:last-child {
+        border-bottom: none;
       }
       
       tbody tr:hover {
         background: #101320 !important;
-        border-color: var(--border);
       }
       
       tbody tr:active {
-        transform: scale(0.99);
+        background: #0a0c14 !important;
       }
       
       tbody tr td {
         display: block;
         padding: 0;
-        text-align: left !important;
-        white-space: normal;
         border: none;
+        white-space: nowrap;
       }
       
-      /* Card layout styling */
+      /* NASDAQ-style layout: TICKER | Company | EPS */
       tbody tr td:nth-child(1) {
-        /* Ticker - Most prominent */
-        font-size: 1.15rem;
-        font-weight: 700;
-        margin-bottom: 6px;
-        letter-spacing: 0.05em;
+        /* Ticker - Bold, prominent, left */
+        flex: 0 0 auto;
+        min-width: 60px;
+        font-size: 1rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
         color: var(--accent-strong);
+        text-transform: uppercase;
       }
       
       tbody tr td:nth-child(2) {
-        /* Company name */
-        font-size: 0.95rem;
-        color: var(--text);
-        margin-bottom: 10px;
-        line-height: 1.4;
-        max-width: none;
+        /* Company name - flex grow, truncate */
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: 0.85rem;
+        color: #d4d4dc;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        line-height: 1.2;
       }
       
       tbody tr td:nth-child(3) {
-        /* Time badge */
-        display: inline-block;
-        padding: 5px 11px;
-        border-radius: 6px;
-        background: var(--bg-elevated-soft);
-        border: 1px solid var(--border);
-        font-size: 0.8rem;
-        margin-bottom: 8px;
-        font-weight: 500;
+        /* Time - hide on mobile, not critical */
+        display: none;
       }
       
       tbody tr td:nth-child(4) {
-        /* EPS - Large and clear */
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-top: 2px;
+        /* EPS - Right aligned, prominent */
+        flex: 0 0 auto;
+        min-width: 55px;
+        text-align: right;
+        font-size: 0.95rem;
+        font-weight: 700;
       }
       
       tbody tr td:nth-child(4)::before {
-        content: "EPS Est: ";
-        color: var(--muted);
-        font-weight: 400;
-        font-size: 0.85rem;
-        margin-right: 4px;
+        display: none; /* No label needed */
       }
 
       /* Status bar */
       .status-bar {
-        padding: 12px 14px;
-        flex-direction: column;
+        padding: 8px 10px;
+        flex-direction: row;
+        justify-content: space-between;
         align-items: center;
-        text-align: center;
         gap: 8px;
+        font-size: 0.7rem;
       }
       
       .status-pill {
-        font-size: 0.8rem;
-        padding: 6px 12px;
+        font-size: 0.7rem;
+        padding: 4px 8px;
       }
 
       /* Skeleton rows */
       .skeleton-row td {
-        height: 90px !important;
+        height: 40px !important;
       }
       .skeleton-row td::before {
-        inset: 6px 0;
+        inset: 4px 0;
       }
     }
 
-    /* Extra small devices */
+    /* Extra small devices - even tighter */
     @media (max-width: 400px) {
-      body { padding: 6px; }
-      .app { padding: 10px; }
+      body { padding: 2px; }
+      .app { padding: 6px; }
       .brand-logo { 
-        width: 64px; 
-        height: 64px; 
+        width: 36px; 
+        height: 36px; 
       }
       .brand-title {
-        font-size: 1rem;
-      }
-      .brand-subline {
-        font-size: 0.8rem;
-      }
-      tbody tr {
-        padding: 12px;
-      }
-      tbody tr td:nth-child(1) {
-        font-size: 1.05rem;
-      }
-      tbody tr td:nth-child(2) {
         font-size: 0.9rem;
       }
-      tbody tr td:nth-child(4) {
-        font-size: 1rem;
+      .search-input {
+        font-size: 0.85rem;
+        padding: 7px 7px 7px 28px;
       }
-      tbody tr td:nth-child(4)::before {
+      tbody tr {
+        padding: 8px 8px;
+        gap: 8px;
+      }
+      tbody tr td:nth-child(1) {
+        min-width: 50px;
+        font-size: 0.95rem;
+      }
+      tbody tr td:nth-child(2) {
         font-size: 0.8rem;
+      }
+      tbody tr td:nth-child(4) {
+        min-width: 50px;
+        font-size: 0.9rem;
       }
     }
   </style>
