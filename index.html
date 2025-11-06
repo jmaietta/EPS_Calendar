@@ -987,12 +987,23 @@
 
         const label = labelForOffset(state.dayOffset);
 
-        dom.currentDayLabel.textContent = label;
-        dom.metaDay.textContent = label;
-        dom.dayHeaderMainText.textContent = label;
-        dom.dayHeaderDateText.textContent = pretty === label ? "" : pretty;
+        // Check if searching
+        const isSearching = state.searchQuery.trim().length > 0;
+        
+        if (isSearching) {
+          dom.currentDayLabel.textContent = "Search Results";
+          dom.metaDay.textContent = "Search Results";
+          dom.dayHeaderMainText.textContent = "Search Results";
+          dom.dayHeaderDateText.textContent = `for "${state.searchQuery.trim()}"`;
+        } else {
+          dom.currentDayLabel.textContent = label;
+          dom.metaDay.textContent = label;
+          dom.dayHeaderMainText.textContent = label;
+          dom.dayHeaderDateText.textContent = pretty === label ? "" : pretty;
+        }
 
-        dom.prevDay.disabled = state.dayOffset <= 0;
+        dom.prevDay.disabled = state.dayOffset <= 0 || isSearching;
+        dom.nextDay.disabled = isSearching;
       }
 
       // Parse YYYY-MM-DD as a *local* calendar date (no UTC shift)
@@ -1057,15 +1068,27 @@
       }
 
       function applyFiltersAndRender() {
-        const targetDateIso = formatIsoDate(getTargetDate(state.dayOffset));
-
-        const base = state.earningsRaw.filter(
-          (row) =>
-            state.universeSet.has(row.symbol) &&
-            row.reportDate === targetDateIso
-        );
-
         const q = state.searchQuery.trim().toLowerCase();
+        
+        // If searching, show ALL dates with matches
+        // If not searching, show only the selected date
+        let base;
+        if (q) {
+          // SEARCH MODE: Show all dates
+          base = state.earningsRaw.filter(
+            (row) => state.universeSet.has(row.symbol)
+          );
+        } else {
+          // NORMAL MODE: Show only selected date
+          const targetDateIso = formatIsoDate(getTargetDate(state.dayOffset));
+          base = state.earningsRaw.filter(
+            (row) =>
+              state.universeSet.has(row.symbol) &&
+              row.reportDate === targetDateIso
+          );
+        }
+
+        // Apply search filter
         const withSearch = q
           ? base.filter(
               (row) =>
@@ -1074,22 +1097,35 @@
             )
           : base;
 
-        withSearch.sort((a, b) => a.symbol.localeCompare(b.symbol));
+        // Sort by date first (earliest first), then by symbol
+        withSearch.sort((a, b) => {
+          const dateCompare = a.reportDate.localeCompare(b.reportDate);
+          if (dateCompare !== 0) return dateCompare;
+          return a.symbol.localeCompare(b.symbol);
+        });
 
         state.filtered = withSearch;
         renderTable(state.filtered);
 
-        const dayLabel = labelForOffset(state.dayOffset);
-        dom.statusText.textContent =
-          state.filtered.length.toLocaleString() +
-          " rows · " +
-          dayLabel +
-          " · T2D coverage";
+        // Update status text
+        if (q) {
+          dom.statusText.textContent =
+            state.filtered.length.toLocaleString() +
+            " matching results across all dates · T2D coverage";
+        } else {
+          const dayLabel = labelForOffset(state.dayOffset);
+          dom.statusText.textContent =
+            state.filtered.length.toLocaleString() +
+            " rows · " +
+            dayLabel +
+            " · T2D coverage";
+        }
       }
 
       function hookEvents() {
         dom.search.addEventListener("input", (e) => {
           state.searchQuery = e.target.value || "";
+          updateDayUI(); // Update UI to show search mode
           applyFiltersAndRender();
         });
 
