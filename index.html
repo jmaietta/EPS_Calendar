@@ -376,17 +376,9 @@
       white-space: nowrap;
     }
 
-    .date-cell {
-      width: 110px;
-    }
-
-    .eps-cell {
-      width: 90px;
-    }
-
-    .ccy-cell {
-      width: 50px;
-    }
+    .date-cell { width: 110px; }
+    .eps-cell { width: 90px; }
+    .ccy-cell { width: 50px; }
 
     .right { text-align: right; }
 
@@ -755,7 +747,7 @@
         <strong id="meta-day">Today</strong>
       </div>
       <div class="meta-right">
-        <span class="mono" id="meta-range">Within 3-month data window</span>
+        <span class="mono" id="meta-range">Within 3-month T2D window</span>
       </div>
     </section>
 
@@ -766,7 +758,7 @@
           <span id="day-header-date-text"></span>
         </div>
         <div class="day-header-meta">
-          Time window from T2D earnings calendar feed.
+          Time window from the T2D earnings calendar feed.
         </div>
       </div>
       <div class="table-wrap">
@@ -808,7 +800,7 @@
       const API_KEY = "AVZ9ZLIQ5B351N3O"; // not shown in UI
       const HORIZON = "3month"; // 3month | 6month | 12month
 
-      // Single master universe file provided by you
+      // Single master universe file
       const UNIVERSE_FILES = ["eps_calendar_universe.csv"];
 
       const API_URL =
@@ -1186,7 +1178,7 @@
             : HORIZON === "12month"
             ? "12-month"
             : "3-month") +
-          " Alpha Vantage window";
+          " T2D window";
 
         updateDayUI();
 
