@@ -762,6 +762,18 @@
         dom.prevDay.disabled = state.dayOffset <= 0;
       }
 
+      // Parse YYYY-MM-DD as a *local* calendar date (no UTC shift)
+      function parseIsoLocal(iso) {
+        if (!iso) return null;
+        const parts = iso.split("-");
+        if (parts.length !== 3) return null;
+        const y = Number(parts[0]);
+        const m = Number(parts[1]);
+        const d = Number(parts[2]);
+        if (!y || !m || !d) return null;
+        return new Date(y, m - 1, d); // local midnight
+      }
+
       function renderTable(rows) {
         if (!rows.length) {
           dom.tbody.innerHTML =
@@ -772,7 +784,7 @@
         const html = rows
           .map((r) => {
             const iso = r.reportDate;
-            const d = iso ? new Date(iso + "T00:00:00Z") : null;
+            const d = parseIsoLocal(iso);
             const label = d
               ? d.toLocaleDateString(undefined, {
                   month: "short",
