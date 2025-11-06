@@ -518,7 +518,7 @@
         <div class="meta-chip-row">
           <div class="chip chip-accent">
             <span class="chip-dot"></span>
-            Live earnings horizon:
+            Horizon:
             <span id="meta-horizon">3 months</span>
           </div>
           <div class="chip">
@@ -562,7 +562,7 @@
         <strong id="meta-russell">loading…</strong>
       </div>
       <div class="meta-right">
-        <span>Horizon function: <span class="mono">earnings_calendar</span></span>
+        <span>Function: <span class="mono">earnings_calendar</span></span>
       </div>
     </section>
 
@@ -614,7 +614,7 @@
         encodeURIComponent(HORIZON) +
         "&apikey=" +
         encodeURIComponent(API_KEY) +
-        "&datatype=csv"; // explicit CSV
+        "&datatype=csv";
 
       const dom = {
         search: document.getElementById("search"),
@@ -665,14 +665,26 @@
         }
         const text = await res.text();
         const lines = text.trim().split(/\r?\n/);
+        if (!lines.length) throw new Error("IWM_holdings.csv is empty.");
+
+        // detect which column is Ticker
+        const headerCells = safeSplitCsvLine(lines[0]).map((c) =>
+          c.trim().toLowerCase()
+        );
+        let tickerIdx = headerCells.indexOf("ticker");
+        if (tickerIdx < 0) tickerIdx = 0;
+
         const tickers = new Set();
-        for (let i = 0; i < lines.length; i++) {
+        for (let i = 1; i < lines.length; i++) {
           const raw = lines[i].trim();
           if (!raw) continue;
           const cells = safeSplitCsvLine(raw);
-          const ticker = (cells[0] || "").trim().toUpperCase();
+          const ticker = (cells[tickerIdx] || "").trim().toUpperCase();
           if (!ticker || ticker === "TICKER") continue;
           tickers.add(ticker);
+        }
+        if (!tickers.size) {
+          throw new Error("No tickers found in IWM_holdings.csv.");
         }
         return tickers;
       }
@@ -684,9 +696,26 @@
             "Earnings calendar request failed (" + res.status + ")"
           );
         }
-        const text = (await res.text()).trim();
-        if (!text) return [];
-        const lines = text.split(/\r?\n/);
+        const raw = (await res.text()).trim();
+        if (!raw) return [];
+
+        // If provider sends JSON (rate limit / error), surface message
+        if (raw[0] === "{") {
+          let obj;
+          try {
+            obj = JSON.parse(raw);
+          } catch {
+            throw new Error("Unexpected JSON from data provider.");
+          }
+          const msg =
+            obj.Note ||
+            obj["Error Message"] ||
+            obj.Information ||
+            "Unexpected response from data provider.";
+          throw new Error(msg);
+        }
+
+        const lines = raw.split(/\r?\n/);
         if (lines.length <= 1) return [];
 
         const header = safeSplitCsvLine(lines[0]);
@@ -796,7 +825,7 @@
       function renderTable(rows) {
         if (!rows.length) {
           dom.tbody.innerHTML =
-            '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#9da0b5;">No earnings match the current filters.</td></tr>';
+            '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#9da0b5;">No upcoming earnings matched the current universe / filters.</td></tr>';
           return;
         }
 
@@ -923,7 +952,9 @@
           setStatus("Failed to load data.", "error");
           dom.tbody.innerHTML =
             '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#fecaca;">' +
-            "Check API limits, the horizon setting, and that IWM_holdings.csv is deployed alongside this file." +
+            (err && err.message
+              ? "Data error: " + err.message
+              : "Unknown data error. Check API limits and that IWM_holdings.csv is deployed next to this file.") +
             "</td></tr>";
           dom.metaRussell.textContent = "error";
         }
