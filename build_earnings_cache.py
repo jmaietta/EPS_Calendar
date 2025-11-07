@@ -7,18 +7,8 @@ Generates earnings_cache.json for the T2D Earnings Calendar frontend.
 - Reads tickers from eps_calendar_universe.csv
 - Calls AlphaVantage EARNINGS_CALENDAR ONCE
 - Filters rows to your universe
-- Writes earnings_cache.json with:
-  [
-    {
-      "symbol": "AAPL",
-      "name": "...",
-      "reportDate": "2025-11-06",
-      "fiscalDateEnding": "2025-09-30",
-      "estimate": "1.23",
-      "currency": "USD"
-    },
-    ...
-  ]
+- Writes earnings_cache.json (for the frontend)
+- Archives the previous earnings_cache.json (if any) into earnings_history/
 """
 
 import csv
@@ -26,6 +16,7 @@ import io
 import json
 import os
 import sys
+from datetime import datetime
 from typing import List, Dict
 
 import requests
@@ -34,16 +25,19 @@ import requests
 
 UNIVERSE_CSV = "eps_calendar_universe.csv"
 CACHE_JSON = "earnings_cache.json"
+ARCHIVE_DIR = "earnings_history"
 
 # AlphaVantage API key:
-# Prefer environment variable; if you want, you can hard-code it here.
+# Prefer environment variable; do NOT hard-code in the repo if you can avoid it.
 ALPHAVANTAGE_API_KEY = os.environ.get("ALPHAVANTAGE_API_KEY")
 HORIZON = "3month"  # 3month | 6month | 12month
 
-ALPHA_URL = (
+ALPHA_URL_TEMPLATE = (
     "https://www.alphavantage.co/query"
-    f"?function=EARNINGS_CALENDAR&horizon={HORIZON}"
-    f"&apikey={{api_key}}&datatype=csv"
+    "?function=EARNINGS_CALENDAR"
+    "&horizon={horizon}"
+    "&apikey={api_key}"
+    "&datatype=csv"
 )
 
 
@@ -56,7 +50,7 @@ def require_api_key() -> str:
     if not ALPHAVANTAGE_API_KEY:
         print(
             "ERROR: ALPHAVANTAGE_API_KEY is not set.\n"
-            "Set it in your environment, e.g.:\n"
+            "Set it in your environment or GitHub Actions secrets, e.g.:\n"
             "  export ALPHAVANTAGE_API_KEY='YOUR_KEY_HERE'\n"
         )
         sys.exit(1)
@@ -105,7 +99,7 @@ def fetch_earnings_calendar(api_key: str) -> List[Dict[str, str]]:
     """
     Call AlphaVantage EARNINGS_CALENDAR once and return rows as dicts.
     """
-    url = ALPHA_URL.format(api_key=api_key)
+    url = ALPHA_URL_TEMPLATE.format(api_key=api_key, horizon=HORIZON)
     print(f"Requesting EARNINGS_CALENDAR (horizon={HORIZON})…")
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
@@ -130,7 +124,7 @@ def fetch_earnings_calendar(api_key: str) -> List[Dict[str, str]]:
 
 def build_filtered_rows(universe: List[str], raw_rows: List[Dict[str, str]]) -> List[Dict]:
     """
-    Filter AlphaVantage rows down to your universe and normalize fields.
+    Filter provider rows down to your universe and normalize fields.
     """
     universe_set = set(universe)
 
@@ -168,10 +162,47 @@ def build_filtered_rows(universe: List[str], raw_rows: List[Dict[str, str]]) -> 
     return filtered
 
 
+def archive_previous_cache(current_path: str):
+    """
+    If an existing earnings_cache.json is present, copy it into
+    earnings_history/earnings_cache_<timestamp>.json
+    before overwriting.
+    """
+    if not os.path.exists(current_path):
+        return
+
+    os.makedirs(ARCHIVE_DIR, exist_ok=True)
+
+    try:
+        with open(current_path, "r", encoding="utf-8") as f:
+            old_data = json.load(f)
+    except Exception:
+        # If parsing fails for some reason, at least archive the raw text
+        with open(current_path, "r", encoding="utf-8") as f:
+            old_text = f.read()
+        old_data = old_text
+
+    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    archive_name = f"earnings_cache_{stamp}.json"
+    archive_path = os.path.join(ARCHIVE_DIR, archive_name)
+
+    with open(archive_path, "w", encoding="utf-8") as af:
+        if isinstance(old_data, (dict, list)):
+            json.dump(old_data, af, ensure_ascii=False)
+        else:
+            af.write(str(old_data))
+
+    print(f"Archived previous cache to {archive_path}")
+
+
 def write_cache_json(rows: List[Dict], path: str):
     """
-    Write rows to earnings_cache.json for the frontend.
+    Archive previous cache (if any), then write new earnings_cache.json.
     """
+    # Archive existing file first
+    archive_previous_cache(path)
+
+    # Write new cache
     with open(path, "w", encoding="utf-8") as f:
         json.dump(rows, f, ensure_ascii=False)
     print(f"Wrote {len(rows)} rows to {path}")
@@ -183,6 +214,7 @@ def main():
     print("=== T2D earnings_cache.json builder ===")
     print(f"Universe file: {UNIVERSE_CSV}")
     print(f"Output file : {CACHE_JSON}")
+    print(f"Archive dir : {ARCHIVE_DIR}")
     print()
 
     api_key = require_api_key()
@@ -199,10 +231,10 @@ def main():
     # 3) Filter + normalize
     rows = build_filtered_rows(universe, raw_rows)
 
-    # 4) Write JSON cache
+    # 4) Archive previous + write JSON cache
     write_cache_json(rows, CACHE_JSON)
 
-    print("\nDone. Place earnings_cache.json next to index.html on your host.")
+    print("\nDone. Place earnings_cache.json (and earnings_history/ if you want history) next to index.html on your host.")
 
 
 if __name__ == "__main__":
