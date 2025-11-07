@@ -39,16 +39,21 @@ jobs:
         run: |
           python build_earnings_cache.py
 
-      - name: Commit and push updated earnings_cache.json
+      - name: Commit and push updated cache and history
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Stage current cache and history (if it exists)
+          git add earnings_cache.json
+          if [ -d "earnings_history" ]; then
+            git add earnings_history
+          fi
+
           # Only commit if there are changes
-          if git diff --quiet; then
-            echo "No changes in earnings_cache.json; nothing to commit."
+          if git diff --cached --quiet; then
+            echo "No changes in cache; nothing to commit."
           else
-            git add earnings_cache.json
-            git commit -m "Update earnings_cache.json [CI]"
+            git commit -m "Update earnings cache and history [CI]"
             git push
           fi
