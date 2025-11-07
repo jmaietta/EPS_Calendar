@@ -989,7 +989,7 @@
             pretty === label ? "" : pretty;
         }
 
-        dom.prevDay.disabled = state.dayOffset <= 0 || isSearching;
+        dom.prevDay.disabled = isSearching;
         dom.nextDay.disabled = isSearching;
       }
 
@@ -1177,3 +1177,4 @@
   </script>
 </body>
 </html>
+
