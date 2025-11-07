@@ -797,18 +797,9 @@
   <script>
     (function () {
       // CONFIG
-      const API_KEY = "AVZ9ZLIQ5B351N3O"; // not shown in UI
-      const HORIZON = "3month"; // 3month | 6month | 12month
-
-      // Single master universe file
-      const UNIVERSE_FILES = ["eps_calendar_universe.csv"];
-
-      const API_URL =
-        "https://www.alphavantage.co/query" +
-        "?function=EARNINGS_CALENDAR" +
-        "&horizon=" + encodeURIComponent(HORIZON) +
-        "&apikey=" + encodeURIComponent(API_KEY) +
-        "&datatype=csv";
+      const HORIZON = "3month"; // label only
+      const UNIVERSE_FILES = ["eps_calendar_universe.csv"]; // master ticker file
+      const CACHE_URL = "earnings_cache.json"; // pre-baked JSON from backend
 
       const dom = {
         search: document.getElementById("search"),
@@ -870,7 +861,7 @@
         const tickers = new Set();
 
         for (const file of UNIVERSE_FILES) {
-          const res = await fetch(file);
+          const res = await fetch(file, { cache: "no-cache" });
           if (!res.ok) {
             throw new Error("Unable to load " + file + " (" + res.status + ")");
           }
@@ -914,65 +905,38 @@
         return tickers;
       }
 
-      async function loadEarningsCalendar() {
-        const res = await fetch(API_URL);
+      // Load pre-baked earnings data from local JSON cache
+      async function loadEarningsCache() {
+        const res = await fetch(CACHE_URL, { cache: "no-cache" });
         if (!res.ok) {
-          throw new Error("Earnings calendar request failed (" + res.status + ")");
+          throw new Error("Calendar cache request failed (" + res.status + ")");
         }
-        const raw = (await res.text()).trim();
-        if (!raw) return [];
-
-        if (raw[0] === "{") {
-          let obj;
-          try {
-            obj = JSON.parse(raw);
-          } catch {
-            throw new Error("Unexpected JSON from data provider.");
-          }
-          const msg =
-            obj.Note ||
-            obj["Error Message"] ||
-            obj.Information ||
-            "Unexpected response from data provider.";
-          throw new Error(msg);
+        const data = await res.json();
+        if (!Array.isArray(data)) {
+          throw new Error("Unexpected cache format.");
         }
 
-        const lines = raw.split(/\r?\n/);
-        if (lines.length <= 1) return [];
-
-        const header = safeSplitCsvLine(lines[0]);
-        const idx = {
-          symbol: header.indexOf("symbol"),
-          name: header.indexOf("name"),
-          reportDate: header.indexOf("reportDate"),
-          fiscalDateEnding: header.indexOf("fiscalDateEnding"),
-          estimate: header.indexOf("estimate"),
-          currency: header.indexOf("currency")
-        };
-
-        const rows = [];
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (!line) continue;
-          const cells = safeSplitCsvLine(line);
-          const row = {
-            symbol:
-              idx.symbol >= 0 ? (cells[idx.symbol] || "").trim().toUpperCase() : "",
-            name: idx.name >= 0 ? (cells[idx.name] || "").trim() : "",
-            reportDate:
-              idx.reportDate >= 0 ? (cells[idx.reportDate] || "").trim() : "",
-            fiscalDateEnding:
-              idx.fiscalDateEnding >= 0
-                ? (cells[idx.fiscalDateEnding] || "").trim()
-                : "",
-            estimate:
-              idx.estimate >= 0 ? (cells[idx.estimate] || "").trim() : "",
-            currency:
-              idx.currency >= 0 ? (cells[idx.currency] || "").trim() : ""
-          };
-          if (row.symbol && row.reportDate) rows.push(row);
-        }
-        return rows;
+        return data
+          .map((r) => {
+            const symbol = (r.symbol || "").trim().toUpperCase();
+            const name = (r.name || "").trim();
+            const reportDate = (r.reportDate || "").trim();
+            const fiscalDateEnding = (r.fiscalDateEnding || "").trim();
+            const estimateRaw =
+              r.estimate === null || r.estimate === undefined
+                ? ""
+                : String(r.estimate).trim();
+            const currency = (r.currency || "").trim();
+            return {
+              symbol,
+              name,
+              reportDate,
+              fiscalDateEnding,
+              estimate: estimateRaw,
+              currency
+            };
+          })
+          .filter((r) => r.symbol && r.reportDate);
       }
 
       function getTargetDate(offset) {
@@ -1188,12 +1152,10 @@
           dom.metaUniverse.textContent =
             state.universeSet.size.toLocaleString();
 
-          setStatus("Loading earnings calendar…", "loading");
-          state.earningsRaw = await loadEarningsCalendar();
+          setStatus("Loading T2D earnings cache…", "loading");
+          state.earningsRaw = await loadEarningsCache();
 
-          const now = new Date();
-          dom.metaUpdated.textContent =
-            "Last refresh: " + now.toLocaleString();
+          dom.metaUpdated.textContent = "Loaded from T2D cache";
 
           setStatus("Earnings calendar loaded.", "ok");
           applyFiltersAndRender();
@@ -1204,7 +1166,7 @@
             '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#fecaca;">' +
             (err && err.message
               ? "Data error: " + err.message
-              : "Unknown data error. Check API limits and that eps_calendar_universe.csv is deployed next to this file.") +
+              : "Unknown data error. Check that eps_calendar_universe.csv and earnings_cache.json are deployed next to this file.") +
             "</td></tr>";
           dom.metaUniverse.textContent = "error";
         }
