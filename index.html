@@ -1155,8 +1155,6 @@
           setStatus("Loading T2D earnings cache…", "loading");
           state.earningsRaw = await loadEarningsCache();
 
-          dom.metaUpdated.textContent = "Loaded from T2D cache";
-
           setStatus("Earnings calendar loaded.", "ok");
           applyFiltersAndRender();
         } catch (err) {
@@ -1177,3 +1175,4 @@
   </script>
 </body>
 </html>
+
