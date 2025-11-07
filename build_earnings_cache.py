@@ -2,13 +2,23 @@
 """
 build_earnings_cache.py
 
-Generates earnings_cache.json for the T2D Earnings Calendar frontend.
+Robust builder for earnings_cache.json used by the T2D Earnings Calendar.
 
+Behavior:
 - Reads tickers from eps_calendar_universe.csv
-- Calls AlphaVantage EARNINGS_CALENDAR ONCE
-- Filters rows to your universe
-- Writes earnings_cache.json (for the frontend)
-- Archives the previous earnings_cache.json (if any) into earnings_history/
+- Calls AlphaVantage EARNINGS_CALENDAR ONCE (datatype=csv)
+- Validates the response hard:
+    * Must have expected columns
+    * Must have enough raw rows
+    * Must have enough rows AFTER filtering to your universe
+- ONLY if checks pass:
+    * Archives previous earnings_cache.json to earnings_history/
+    * Writes new earnings_cache.json
+- If checks FAIL:
+    * Prints clear error
+    * DOES NOT touch existing earnings_cache.json
+
+Result: front-end always sees last known-good JSON snapshot.
 """
 
 import csv
@@ -27,10 +37,10 @@ UNIVERSE_CSV = "eps_calendar_universe.csv"
 CACHE_JSON = "earnings_cache.json"
 ARCHIVE_DIR = "earnings_history"
 
-# AlphaVantage API key:
-# Prefer environment variable; do NOT hard-code in the repo if you can avoid it.
-ALPHAVANTAGE_API_KEY = os.environ.get("ALPHAVANTAGE_API_KEY")
 HORIZON = "3month"  # 3month | 6month | 12month
+
+# AlphaVantage API key from environment
+ALPHAVANTAGE_API_KEY = os.environ.get("ALPHAVANTAGE_API_KEY")
 
 ALPHA_URL_TEMPLATE = (
     "https://www.alphavantage.co/query"
@@ -40,17 +50,18 @@ ALPHA_URL_TEMPLATE = (
     "&datatype=csv"
 )
 
+# Sanity thresholds (tune if you want)
+MIN_RAW_ROWS = 100        # if we get less than this from AV, assume it's junk
+MIN_FILTERED_ROWS = 10    # if < this in your universe, refuse to overwrite cache
+
 
 # ---------- HELPERS ----------
 
 def require_api_key() -> str:
-    """
-    Ensure we have an API key, otherwise bail out cleanly.
-    """
     if not ALPHAVANTAGE_API_KEY:
         print(
             "ERROR: ALPHAVANTAGE_API_KEY is not set.\n"
-            "Set it in your environment or GitHub Actions secrets, e.g.:\n"
+            "Set it in your environment or GitHub Actions secret, e.g.:\n"
             "  export ALPHAVANTAGE_API_KEY='YOUR_KEY_HERE'\n"
         )
         sys.exit(1)
@@ -60,7 +71,7 @@ def require_api_key() -> str:
 def load_universe(path: str) -> List[str]:
     """
     Load ticker universe from eps_calendar_universe.csv.
-    Tries to detect a 'ticker' column; otherwise uses first column.
+    Tries to detect 'ticker' column; otherwise uses first column.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"Universe file not found: {path}")
@@ -95,31 +106,51 @@ def load_universe(path: str) -> List[str]:
     return sorted(tickers)
 
 
-def fetch_earnings_calendar(api_key: str) -> List[Dict[str, str]]:
+def fetch_earnings_calendar_from_api(api_key: str) -> List[Dict[str, str]]:
     """
     Call AlphaVantage EARNINGS_CALENDAR once and return rows as dicts.
+
+    If the response looks like rate-limit / error / wrong shape,
+    raise an error instead of returning junk.
     """
     url = ALPHA_URL_TEMPLATE.format(api_key=api_key, horizon=HORIZON)
-    print(f"Requesting EARNINGS_CALENDAR (horizon={HORIZON})…")
+    print(f"Requesting EARNINGS_CALENDAR (horizon={HORIZON}) from AlphaVantage…")
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
 
     text = resp.text.strip()
     if not text:
-        print("Empty response from provider.")
-        return []
+        raise RuntimeError("Empty response from provider.")
 
-    # If they send a JSON error / rate limit note, surface it
+    # If they send JSON, it's a Note / Error, not real CSV.
     if text.startswith("{"):
         try:
             obj = json.loads(text)
         except Exception:
-            raise RuntimeError("Provider returned JSON, but it could not be parsed.")
+            raise RuntimeError("Provider returned JSON that could not be parsed.")
         msg = obj.get("Note") or obj.get("Error Message") or obj.get("Information") or text
         raise RuntimeError(f"Provider error: {msg}")
 
-    reader = csv.DictReader(io.StringIO(text))
-    return list(reader)
+    # Parse CSV
+    buffer = io.StringIO(text)
+    reader = csv.DictReader(buffer)
+    rows = list(reader)
+
+    headers = [h.strip().lower() for h in (reader.fieldnames or [])]
+    if "symbol" not in headers or "reportdate" not in headers:
+        raise RuntimeError(
+            "Provider CSV missing expected 'symbol'/'reportDate' columns. "
+            "Response may be an error or format change."
+        )
+
+    if len(rows) < MIN_RAW_ROWS:
+        raise RuntimeError(
+            f"Provider returned too few rows ({len(rows)} < {MIN_RAW_ROWS}). "
+            "Likely rate limit / partial data. Refusing to update cache."
+        )
+
+    print(f"Loaded {len(rows)} raw rows from provider.")
+    return rows
 
 
 def build_filtered_rows(universe: List[str], raw_rows: List[Dict[str, str]]) -> List[Dict]:
@@ -128,7 +159,7 @@ def build_filtered_rows(universe: List[str], raw_rows: List[Dict[str, str]]) -> 
     """
     universe_set = set(universe)
 
-    print(f"Received {len(raw_rows)} rows from provider.")
+    print(f"Filtering into T2D universe ({len(universe)} tickers)…")
     filtered: List[Dict] = []
 
     for r in raw_rows:
@@ -162,11 +193,26 @@ def build_filtered_rows(universe: List[str], raw_rows: List[Dict[str, str]]) -> 
     return filtered
 
 
+def verify_sanity(raw_rows: List[Dict], filtered_rows: List[Dict]):
+    """
+    Decide if the data looks sane enough to overwrite the cache.
+    Raise RuntimeError if not.
+    """
+    if len(raw_rows) < MIN_RAW_ROWS:
+        raise RuntimeError(
+            f"Sanity check failed: raw rows {len(raw_rows)} < {MIN_RAW_ROWS}."
+        )
+    if len(filtered_rows) < MIN_FILTERED_ROWS:
+        raise RuntimeError(
+            f"Sanity check failed: filtered rows {len(filtered_rows)} < {MIN_FILTERED_ROWS}. "
+            "Refusing to overwrite cache with almost-empty universe."
+        )
+
+
 def archive_previous_cache(current_path: str):
     """
     If an existing earnings_cache.json is present, copy it into
-    earnings_history/earnings_cache_<timestamp>.json
-    before overwriting.
+    earnings_history/earnings_cache_<timestamp>.json before overwriting.
     """
     if not os.path.exists(current_path):
         return
@@ -177,7 +223,6 @@ def archive_previous_cache(current_path: str):
         with open(current_path, "r", encoding="utf-8") as f:
             old_data = json.load(f)
     except Exception:
-        # If parsing fails for some reason, at least archive the raw text
         with open(current_path, "r", encoding="utf-8") as f:
             old_text = f.read()
         old_data = old_text
@@ -199,10 +244,8 @@ def write_cache_json(rows: List[Dict], path: str):
     """
     Archive previous cache (if any), then write new earnings_cache.json.
     """
-    # Archive existing file first
     archive_previous_cache(path)
 
-    # Write new cache
     with open(path, "w", encoding="utf-8") as f:
         json.dump(rows, f, ensure_ascii=False)
     print(f"Wrote {len(rows)} rows to {path}")
@@ -212,29 +255,42 @@ def write_cache_json(rows: List[Dict], path: str):
 
 def main():
     print("=== T2D earnings_cache.json builder ===")
-    print(f"Universe file: {UNIVERSE_CSV}")
-    print(f"Output file : {CACHE_JSON}")
-    print(f"Archive dir : {ARCHIVE_DIR}")
+    print(f"Universe file : {UNIVERSE_CSV}")
+    print(f"Output file  : {CACHE_JSON}")
+    print(f"Archive dir  : {ARCHIVE_DIR}")
     print()
 
     api_key = require_api_key()
 
-    # 1) Load universe
-    print("Loading universe…")
-    universe = load_universe(UNIVERSE_CSV)
-    print(f"Loaded universe of {len(universe)} tickers.")
+    try:
+        # 1) Load universe
+        print("Loading universe…")
+        universe = load_universe(UNIVERSE_CSV)
+        print(f"Loaded universe of {len(universe)} tickers.")
 
-    # 2) Fetch calendar once
-    print("Fetching earnings calendar…")
-    raw_rows = fetch_earnings_calendar(api_key)
+        # 2) Fetch calendar once
+        print("Fetching earnings calendar…")
+        raw_rows = fetch_earnings_calendar_from_api(api_key)
 
-    # 3) Filter + normalize
-    rows = build_filtered_rows(universe, raw_rows)
+        # 3) Filter + normalize
+        filtered_rows = build_filtered_rows(universe, raw_rows)
 
-    # 4) Archive previous + write JSON cache
-    write_cache_json(rows, CACHE_JSON)
+        # 4) Sanity check before touching cache
+        verify_sanity(raw_rows, filtered_rows)
 
-    print("\nDone. Place earnings_cache.json (and earnings_history/ if you want history) next to index.html on your host.")
+        # 5) Archive previous + write JSON cache
+        write_cache_json(filtered_rows, CACHE_JSON)
+
+        print("\nDone. New cache written successfully.")
+
+    except Exception as e:
+        print("\nERROR during earnings cache build:")
+        print(f"  {e}")
+        if os.path.exists(CACHE_JSON):
+            print("Keeping existing earnings_cache.json untouched.")
+        else:
+            print("No existing cache found; you'll have no data until a successful run.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
