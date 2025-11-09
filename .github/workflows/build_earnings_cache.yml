@@ -18,6 +18,10 @@ jobs:
   build-earnings-cache:
     runs-on: ubuntu-latest
 
+    # Make sure the script sees your secret as an environment variable
+    env:
+      ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -32,11 +36,13 @@ jobs:
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           else
-            echo "No requirements.txt found, skipping pip install."
+            echo "No requirements.txt found, installing minimal deps."
+            pip install requests
           fi
 
       - name: Build earnings_cache.json
         run: |
+          echo "=== T2D earnings_cache.json builder ==="
           python build_earnings_cache.py
 
       - name: Derive latest + per-day history snapshots (New York time)
@@ -45,7 +51,7 @@ jobs:
 
           # Trading date & hour in America/New_York
           TRADING_DATE=$(TZ=America/New_York date +%F)   # e.g. 2025-11-07
-          TRADING_HOUR=$(TZ=America/New_York date +%H)   # e.g. 06, 07, 19, 20
+          TRADING_HOUR=$(TZ=America/New_York date +%H)   # e.g. 06, 19, etc.
 
           echo "Trading date (NY): $TRADING_DATE"
           echo "Trading hour (NY): $TRADING_HOUR"
@@ -60,7 +66,6 @@ jobs:
           echo "Updated earnings_latest.json"
 
           # 2) If this is the evening run (hour >= 12 in NY), freeze history for that trading date
-          #    This covers 7pm ET whether DST is on or off.
           if [ "$TRADING_HOUR" -ge 12 ]; then
             mkdir -p earnings_history
             cp earnings_cache.json "earnings_history/earnings_${TRADING_DATE}.json"
