@@ -811,7 +811,10 @@
       // CONFIG
       const HORIZON = "3month"; // label only
       const UNIVERSE_FILES = ["eps_calendar_universe.csv"]; // master ticker file
-      const CACHE_URL = "earnings_cache.json"; // pre-baked JSON from backend
+
+      // New: latest + per-day history files from the backend
+      const LATEST_URL = "earnings_latest.json";
+      const HISTORY_PREFIX = "earnings_history/earnings_";
 
       const dom = {
         search: document.getElementById("search"),
@@ -917,11 +920,46 @@
         return tickers;
       }
 
-      // Load pre-baked earnings data from local JSON cache
+      function getTargetDate(offset) {
+        const today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+      }
+
+      function formatIsoDate(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      }
+
+      // New helper: choose which JSON file to load for the current dayOffset
+      function getCacheUrlForCurrentOffset() {
+        const target = getTargetDate(state.dayOffset);
+
+        const now = new Date();
+        const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const targetMid = new Date(
+          target.getFullYear(),
+          target.getMonth(),
+          target.getDate()
+        );
+
+        // Past dates -> per-day history file
+        if (targetMid < todayMid) {
+          const iso = formatIsoDate(target); // YYYY-MM-DD
+          return HISTORY_PREFIX + iso + ".json";
+        }
+
+        // Today or future -> latest snapshot
+        return LATEST_URL;
+      }
+
+      // Load pre-baked earnings data from the correct JSON cache
       async function loadEarningsCache() {
-        const res = await fetch(CACHE_URL, { cache: "no-cache" });
+        const url = getCacheUrlForCurrentOffset();
+        const res = await fetch(url, { cache: "no-cache" });
         if (!res.ok) {
-          throw new Error("Calendar cache request failed (" + res.status + ")");
+          throw new Error("Calendar cache request failed (" + res.status + ") for " + url);
         }
         const data = await res.json();
         if (!Array.isArray(data)) {
@@ -949,18 +987,6 @@
             };
           })
           .filter((r) => r.symbol && r.reportDate);
-      }
-
-      function getTargetDate(offset) {
-        const today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
-      }
-
-      function formatIsoDate(d) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        return `${y}-${m}-${day}`;
       }
 
       function labelForOffset(offset) {
@@ -1048,15 +1074,13 @@
                 <td class="ticker-cell mono">${r.symbol}</td>
                 <td class="name-cell">${r.name || "&nbsp;"}</td>
                 <td class="date-cell">${label}</td>
-                <td class="right eps-cell ${cls}">
-                  ${
-                    r.estimate
-                      ? (est < 0 ? "&minus;" : "") +
-                        "$" +
-                        Math.abs(est).toFixed(2)
-                      : "&mdash;"
-                  }
-                </td>
+                <td class="right eps-cell ${cls}">${
+                  r.estimate
+                    ? (est < 0 ? "&minus;" : "") +
+                      "$" +
+                      Math.abs(est).toFixed(2)
+                    : "&mdash;"
+                }</td>
                 <td class="right ccy-cell mono">${r.currency || "&mdash;"}</td>
               </tr>
             `;
@@ -1123,15 +1147,31 @@
           applyFiltersAndRender();
         });
 
-        dom.prevDay.addEventListener("click", () => {
+        dom.prevDay.addEventListener("click", async () => {
           state.dayOffset -= 1;
           updateDayUI();
+          try {
+            setStatus("Loading T2D earnings cache…", "loading");
+            state.earningsRaw = await loadEarningsCache();
+            setStatus("Earnings calendar loaded.", "ok");
+          } catch (err) {
+            console.error(err);
+            setStatus("Failed to load data.", "error");
+          }
           applyFiltersAndRender();
         });
 
-        dom.nextDay.addEventListener("click", () => {
+        dom.nextDay.addEventListener("click", async () => {
           state.dayOffset += 1;
           updateDayUI();
+          try {
+            setStatus("Loading T2D earnings cache…", "loading");
+            state.earningsRaw = await loadEarningsCache();
+            setStatus("Earnings calendar loaded.", "ok");
+          } catch (err) {
+            console.error(err);
+            setStatus("Failed to load data.", "error");
+          }
           applyFiltersAndRender();
         });
       }
@@ -1175,7 +1215,7 @@
             '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#fecaca;">' +
             (err && err.message
               ? "Data error: " + err.message
-              : "Unknown data error. Check that eps_calendar_universe.csv and earnings_cache.json are deployed next to this file.") +
+              : "Unknown data error. Check that eps_calendar_universe.csv, earnings_latest.json, and any required files in earnings_history/ are deployed next to this file.") +
             "</td></tr>";
           dom.metaUniverse.textContent = "error";
         }
@@ -1186,4 +1226,3 @@
   </script>
 </body>
 </html>
-
