@@ -15,11 +15,8 @@ permissions:
   contents: write
 
 jobs:
-  build-cache:
+  build-earnings-cache:
     runs-on: ubuntu-latest
-
-    env:
-      ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
 
     steps:
       - name: Check out repository
@@ -32,20 +29,60 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install requests
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt found, skipping pip install."
+          fi
 
       - name: Build earnings_cache.json
         run: |
           python build_earnings_cache.py
 
+      - name: Derive latest + per-day history snapshots (New York time)
+        run: |
+          set -e
+
+          # Trading date & hour in America/New_York
+          TRADING_DATE=$(TZ=America/New_York date +%F)   # e.g. 2025-11-07
+          TRADING_HOUR=$(TZ=America/New_York date +%H)   # e.g. 06, 07, 19, 20
+
+          echo "Trading date (NY): $TRADING_DATE"
+          echo "Trading hour (NY): $TRADING_HOUR"
+
+          if [ ! -f "earnings_cache.json" ]; then
+            echo "earnings_cache.json not found. Did build_earnings_cache.py run correctly?"
+            exit 1
+          fi
+
+          # 1) Always create / overwrite the "latest" file from the fresh cache
+          cp earnings_cache.json earnings_latest.json
+          echo "Updated earnings_latest.json"
+
+          # 2) If this is the evening run (hour >= 12 in NY), freeze history for that trading date
+          #    This covers 7pm ET whether DST is on or off.
+          if [ "$TRADING_HOUR" -ge 12 ]; then
+            mkdir -p earnings_history
+            cp earnings_cache.json "earnings_history/earnings_${TRADING_DATE}.json"
+            echo "Wrote history snapshot for trading date $TRADING_DATE"
+          else
+            echo "Morning run; skipping history snapshot."
+          fi
+
       - name: Commit and push updated cache and history
         run: |
+          set -e
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage current cache and history (if it exists)
-          git add earnings_cache.json
+          # Stage current cache, latest pointer, and history (if it exists)
+          if [ -f "earnings_cache.json" ]; then
+            git add earnings_cache.json
+          fi
+          if [ -f "earnings_latest.json" ]; then
+            git add earnings_latest.json
+          fi
           if [ -d "earnings_history" ]; then
             git add earnings_history
           fi
