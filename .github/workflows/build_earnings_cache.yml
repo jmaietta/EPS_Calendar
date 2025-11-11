@@ -1,13 +1,11 @@
 name: Build T2D earnings cache
 
 on:
-  # Approximate 6am ET and 7pm ET on weekdays.
+  # Approximate 6am ET on weekdays.
   # GitHub cron is in UTC:
-  # - 6am ET ≈ 11:00 UTC (when ET is UTC-5)
-  # - 7pm ET ≈ 00:00 UTC next day
+  # - 6am ET ≈ 11:00 UTC when ET is UTC-5
   schedule:
     - cron: "0 11 * * 1-5"  # ~6am ET, Mon-Fri
-    - cron: "0 0 * * 2-6"   # ~7pm ET (previous ET day), Tue-Sat
   # Allow manual runs from the Actions tab
   workflow_dispatch:
 
@@ -17,8 +15,6 @@ permissions:
 jobs:
   build-earnings-cache:
     runs-on: ubuntu-latest
-
-    # Make sure the script sees your secret as an environment variable
     env:
       ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
 
@@ -45,34 +41,27 @@ jobs:
           echo "=== T2D earnings_cache.json builder ==="
           python build_earnings_cache.py
 
-      - name: Derive latest + per-day history snapshots (New York time)
+      - name: Derive latest + per-day history snapshot (New York time, morning run)
         run: |
           set -e
 
-          # Trading date & hour in America/New_York
-          TRADING_DATE=$(TZ=America/New_York date +%F)   # e.g. 2025-11-07
-          TRADING_HOUR=$(TZ=America/New_York date +%H)   # e.g. 06, 19, etc.
-
+          # Trading date in America/New_York
+          TRADING_DATE=$(TZ=America/New_York date +%F)   # e.g. 2025-11-10
           echo "Trading date (NY): $TRADING_DATE"
-          echo "Trading hour (NY): $TRADING_HOUR"
 
           if [ ! -f "earnings_cache.json" ]; then
             echo "earnings_cache.json not found. Did build_earnings_cache.py run correctly?"
             exit 1
           fi
 
-          # 1) Always create / overwrite the "latest" file from the fresh cache
+          # 1) Always update the rolling latest file from the fresh cache
           cp earnings_cache.json earnings_latest.json
           echo "Updated earnings_latest.json"
 
-          # 2) If this is the evening run (hour >= 12 in NY), freeze history for that trading date
-          if [ "$TRADING_HOUR" -ge 12 ]; then
-            mkdir -p earnings_history
-            cp earnings_cache.json "earnings_history/earnings_${TRADING_DATE}.json"
-            echo "Wrote history snapshot for trading date $TRADING_DATE"
-          else
-            echo "Morning run; skipping history snapshot."
-          fi
+          # 2) Morning run = freeze history for this trading date (once per day)
+          mkdir -p earnings_history
+          cp earnings_cache.json "earnings_history/earnings_${TRADING_DATE}.json"
+          echo "Wrote history snapshot for trading date $TRADING_DATE"
 
       - name: Commit and push updated cache and history
         run: |
@@ -81,7 +70,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage current cache, latest pointer, and history (if it exists)
           if [ -f "earnings_cache.json" ]; then
             git add earnings_cache.json
           fi
@@ -92,7 +80,6 @@ jobs:
             git add earnings_history
           fi
 
-          # Only commit if there are changes
           if git diff --cached --quiet; then
             echo "No changes in cache; nothing to commit."
           else
