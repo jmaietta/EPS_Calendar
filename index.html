@@ -7,6 +7,11 @@
   <meta name="description" content="TEK2day Earnings Calendar is a daily calendar of upcoming earnings announcements and EPS estimates covering 2,400+ publicly traded companies." />
   <link rel="canonical" href="https://calendar.tek2dayholdings.com/" />
 
+  <!-- Fonts (same as TEK2day Finance) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Archivo:wght@600;700;800&display=swap" rel="stylesheet" />
+
   <!-- Icons -->
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -47,21 +52,22 @@
   
   <style>
     :root {
-      --bg: #050608;
-      --bg-elevated: #101217;
-      --bg-elevated-soft: #141722;
-      --border: #222633;
-      --border-subtle: #1a1d27;
-      --accent: #ff1a1a;
-      --accent-soft: rgba(255, 26, 26, 0.1);
-      --accent-strong: #ff2a2a;
-      --text: #f5f5f7;
-      --muted: #8b8f9e;
-      --danger: #f97373;
-      --font: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        Inter, Segoe UI, sans-serif;
-      --radius-lg: 14px;
-      --shadow-soft: 0 14px 40px rgba(0, 0, 0, 0.7);
+      color-scheme: dark;
+      --bg: #000;
+      --bg-elevated: #070705;
+      --bg-elevated-soft: #0c0c09;
+      --border: #2b2a1e;
+      --border-subtle: #1c1b14;
+      --accent: #ff9f1c;
+      --accent-soft: rgba(255, 159, 28, 0.14);
+      --accent-strong: #ffb454;
+      --text: #e8e6df;
+      --muted: #8a8878;
+      --danger: #ff4d42;
+      --font: "IBM Plex Mono", Consolas, monospace;
+      --sans: "Archivo", system-ui, sans-serif;
+      --radius-lg: 6px;
+      --shadow-soft: none;
     }
 
     * { box-sizing: border-box; }
@@ -94,7 +100,7 @@
       width: 100%;
       max-width: 1100px;
       background: var(--bg-elevated);
-      border-radius: 18px;
+      border-radius: 6px;
       border: 1px solid var(--border);
       box-shadow: var(--shadow-soft);
       padding: 14px 14px 18px;
@@ -121,12 +127,12 @@
     }
 
     .brand-logo {
-      width: 64px;
-      height: 64px;
-      border-radius: 12px;
+      width: 56px;
+      height: 56px;
+      border-radius: 4px;
       flex-shrink: 0;
       object-fit: contain;
-      background: #000;
+      background: #fff;
     }
 
     .brand-text {
@@ -140,13 +146,15 @@
       display: flex;
       align-items: baseline;
       gap: 6px;
+      font-family: var(--sans);
       font-size: 1rem;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .brand-title-main {
-      font-weight: 600;
+      font-weight: 800;
+      color: #fff;
     }
 
     .brand-title-sub {
@@ -180,7 +188,7 @@
 
     .chip {
       padding: 4px 8px;
-      border-radius: 999px;
+      border-radius: 3px;
       border: 1px solid var(--border);
       background: var(--bg-elevated-soft);
       display: inline-flex;
@@ -192,14 +200,14 @@
     .chip-dot {
       width: 8px;
       height: 8px;
-      border-radius: 999px;
+      border-radius: 3px;
       background: var(--accent);
     }
 
     .chip-accent {
       border-color: var(--accent);
       background: var(--accent-soft);
-      color: #ffe4e4;
+      color: #ffd9a8;
     }
 
     /* CONTROLS */
@@ -220,16 +228,16 @@
     .search-input {
       width: 100%;
       padding: 7px 8px 7px 28px;
-      border-radius: 999px;
+      border-radius: 3px;
       border: 1px solid var(--border-subtle);
-      background: #05060a;
+      background: #070705;
       color: var(--text);
       font-size: 0.8rem;
       outline: none;
     }
 
     .search-input::placeholder {
-      color: #5e6478;
+      color: #6f6d5e;
     }
 
     .search-icon {
@@ -240,7 +248,7 @@
       width: 11px;
       height: 11px;
       border-radius: 999px;
-      border: 2px solid #5e6478;
+      border: 2px solid #6f6d5e;
     }
 
     .search-icon::after {
@@ -248,8 +256,8 @@
       position: absolute;
       width: 6px;
       height: 2px;
-      background: #5e6478;
-      border-radius: 999px;
+      background: #6f6d5e;
+      border-radius: 3px;
       right: -4px;
       bottom: -2px;
       transform: rotate(40deg);
@@ -262,8 +270,8 @@
       align-items: center;
       gap: 6px;
       padding: 2px;
-      border-radius: 999px;
-      background: #05060a;
+      border-radius: 3px;
+      background: #070705;
       border: 1px solid var(--border-subtle);
       flex-shrink: 0;
     }
@@ -273,10 +281,10 @@
       outline: none;
       cursor: pointer;
       background: transparent;
-      color: #d4d4dc;
+      color: #e8e6df;
       width: 24px;
       height: 24px;
-      border-radius: 999px;
+      border-radius: 3px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -285,7 +293,7 @@
     }
 
     .nav-btn:hover:not(:disabled) {
-      background: #181b26;
+      background: #15150f;
     }
 
     .nav-btn:disabled {
@@ -296,7 +304,7 @@
     .date-label {
       padding: 0 8px;
       font-size: 0.8rem;
-      color: #e5e7f2;
+      color: #e8e6df;
       white-space: nowrap;
     }
 
@@ -313,7 +321,7 @@
     }
 
     .meta-bar strong {
-      color: #e5e7f2;
+      color: #e8e6df;
     }
 
     .meta-right {
@@ -327,7 +335,7 @@
 
     .data-card {
       margin-top: 4px;
-      background: #05060a;
+      background: #070705;
       border-radius: var(--radius-lg);
       border: 1px solid var(--border-subtle);
       overflow: hidden;
@@ -340,7 +348,7 @@
       justify-content: space-between;
       align-items: baseline;
       gap: 8px;
-      background: #080911;
+      background: #0c0c09;
     }
 
     .day-header-main {
@@ -367,10 +375,10 @@
     }
 
     .table-wrap::-webkit-scrollbar { height: 6px; }
-    .table-wrap::-webkit-scrollbar-track { background: #05060a; }
+    .table-wrap::-webkit-scrollbar-track { background: #070705; }
     .table-wrap::-webkit-scrollbar-thumb {
-      background: #2b3040;
-      border-radius: 999px;
+      background: #2b2a1e;
+      border-radius: 3px;
     }
 
     table {
@@ -380,7 +388,7 @@
       table-layout: fixed;
     }
 
-    thead { background: #080911; }
+    thead { background: #0c0c09; }
 
     th, td {
       padding: 6px 8px;
@@ -391,20 +399,23 @@
     }
 
     th {
-      font-weight: 500;
-      color: #9da0b5;
+      font-weight: 600;
+      color: #b97a14;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
       border-bottom: 1px solid var(--border-subtle);
     }
 
-    tbody tr:nth-child(odd) { background: #05060a; }
-    tbody tr:nth-child(even) { background: #080911; }
-    tbody tr:hover { background: #101320; }
+    tbody tr:nth-child(odd) { background: #070705; }
+    tbody tr:nth-child(even) { background: #0c0c09; }
+    tbody tr:hover { background: #15150f; }
 
     .ticker-cell {
       font-weight: 700;
       letter-spacing: 0.08em;
       font-size: 0.9rem;
-      color: #ff4d4d;
+      color: var(--accent);
       text-transform: uppercase;
       width: 70px;
     }
@@ -432,7 +443,7 @@
     .right { text-align: right; }
 
     .eps-cell { font-variant-numeric: tabular-nums; }
-    .eps-pos { color: #4ade80; }
+    .eps-pos { color: #2fd47f; }
     .eps-neg { color: var(--danger); }
 
     .status-bar {
@@ -449,16 +460,16 @@
 
     .status-pill {
       padding: 3px 8px;
-      border-radius: 999px;
+      border-radius: 3px;
       border: 1px solid var(--border-subtle);
-      background: #080911;
-      color: #d4d4dc;
+      background: #0c0c09;
+      color: #e8e6df;
       font-size: 0.7rem;
     }
 
     .status-pill.ok {
       border-color: var(--accent);
-      color: #ffe4e4;
+      color: #ffd9a8;
       background: var(--accent-soft);
     }
 
@@ -478,12 +489,12 @@
       content: "";
       position: absolute;
       inset: 4px 0;
-      border-radius: 999px;
+      border-radius: 3px;
       background: linear-gradient(
         90deg,
-        rgba(30, 32, 44, 0.35) 0%,
-        rgba(48, 52, 70, 0.9) 35%,
-        rgba(30, 32, 44, 0.4) 100%
+        rgba(28, 27, 20, 0.35) 0%,
+        rgba(43, 42, 30, 0.9) 35%,
+        rgba(28, 27, 20, 0.4) 100%
       );
       animation: shimmer 1s linear infinite;
       transform: translateX(-40%);
@@ -501,7 +512,7 @@
       body { padding: 4px; }
       .app {
         padding: 8px;
-        border-radius: 12px;
+        border-radius: 6px;
         gap: 6px;
       }
 
@@ -622,7 +633,7 @@
         align-items: center;
         padding: 10px 10px;
         border-bottom: 1px solid var(--border-subtle);
-        background: #080911 !important;
+        background: #0c0c09 !important;
         margin: 0;
         border-radius: 0;
         gap: 10px;
@@ -633,11 +644,11 @@
       }
 
       tbody tr:hover {
-        background: #101320 !important;
+        background: #15150f !important;
       }
 
       tbody tr:active {
-        background: #0a0c14 !important;
+        background: #0c0c09 !important;
       }
 
       tbody tr td {
@@ -661,7 +672,7 @@
         flex: 1 1 auto;
         min-width: 0;
         font-size: 0.85rem;
-        color: #d4d4dc;
+        color: #e8e6df;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -743,7 +754,7 @@
     <header class="header">
       <div class="brand">
         <img
-          src="T2D%20Square%20Black%20(small).png"
+          src="tek2day-icon.png"
           alt="TEK2day Earnings Calendar"
           class="brand-logo"
         />
@@ -1086,7 +1097,7 @@
       function renderTable(rows) {
         if (!rows.length) {
           dom.tbody.innerHTML =
-            '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#9da0b5;">No earnings scheduled for this date in the T2D universe.</td></tr>';
+            '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#8a8878;">No earnings scheduled for this date in the T2D universe.</td></tr>';
           return;
         }
 
