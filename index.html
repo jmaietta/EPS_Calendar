@@ -2,21 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>T2D Earnings Calendar</title>
+  <title>TEK2day Earnings Calendar — Upcoming Earnings Dates &amp; EPS Estimates</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
+  <meta name="description" content="TEK2day Earnings Calendar is a daily calendar of upcoming earnings announcements and EPS estimates covering 2,400+ publicly traded companies." />
+  <link rel="canonical" href="https://calendar.tek2dayholdings.com/" />
+
+  <!-- Icons -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
   <!-- Open Graph Tags for Social Sharing -->
-  <meta property="og:title" content="T2D Earnings Calendar" />
-  <meta property="og:description" content="Track earnings announcements and EPS estimates for public companies." />
+  <meta property="og:site_name" content="TEK2day Earnings Calendar" />
+  <meta property="og:title" content="TEK2day Earnings Calendar" />
+  <meta property="og:description" content="TEK2day Earnings Calendar is a daily calendar of upcoming earnings announcements and EPS estimates covering 2,400+ publicly traded companies." />
   <meta property="og:image" content="https://calendar.tek2dayholdings.com/og-image.png" />
   <meta property="og:url" content="https://calendar.tek2dayholdings.com/" />
   <meta property="og:type" content="website" />
-  
+
   <!-- Twitter Card Tags -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="T2D Earnings Calendar" />
-  <meta name="twitter:description" content="Track earnings announcements and EPS estimates for public companies." />
+  <meta name="twitter:title" content="TEK2day Earnings Calendar" />
+  <meta name="twitter:description" content="TEK2day Earnings Calendar is a daily calendar of upcoming earnings announcements and EPS estimates covering 2,400+ publicly traded companies." />
   <meta name="twitter:image" content="https://calendar.tek2dayholdings.com/og-image.png" />
+
+  <!-- Site identity for Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "TEK2day Earnings Calendar",
+    "url": "https://calendar.tek2dayholdings.com/",
+    "description": "TEK2day Earnings Calendar is a daily calendar of upcoming earnings announcements and EPS estimates covering 2,400+ publicly traded companies.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "TEK2day Holdings",
+      "url": "https://tek2dayholdings.com/"
+    }
+  }
+  </script>
   
   <style>
     :root {
@@ -38,6 +65,14 @@
     }
 
     * { box-sizing: border-box; }
+
+    .about-line {
+      padding: 10px 4px 2px;
+      color: var(--muted);
+      font-size: 0.74rem;
+      line-height: 1.6;
+      text-align: center;
+    }
 
     html, body {
       margin: 0;
@@ -709,12 +744,12 @@
       <div class="brand">
         <img
           src="T2D%20Square%20Black%20(small).png"
-          alt="T2D"
+          alt="TEK2day Earnings Calendar"
           class="brand-logo"
         />
         <div class="brand-text">
           <div class="brand-title">
-            <span class="brand-title-main">T2D</span>
+            <span class="brand-title-main">TEK2day</span>
             <span class="brand-title-sub">Earnings Calendar</span>
           </div>
           <div class="brand-subline">
@@ -804,6 +839,11 @@
         <span class="status-pill" id="status-pill">Loading</span>
       </div>
     </section>
+
+    <footer class="about-line">
+      TEK2day Earnings Calendar is a daily calendar of upcoming earnings
+      announcements and EPS estimates covering 2,400+ publicly traded companies.
+    </footer>
   </div>
 
   <script>
