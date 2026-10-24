@@ -8,9 +8,16 @@ on:
     - cron: "0 11 * * 1-5"  # ~6am ET, Mon-Fri
   # Allow manual runs from the Actions tab
   workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: "Test the failure email (stops before touching any data)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+  # Failure notices are posted as an issue, which GitHub emails to the owner
+  issues: write
 
 jobs:
   build-earnings-cache:
@@ -37,6 +44,8 @@ jobs:
           fi
 
       - name: Build earnings_cache.json
+        env:
+          SIMULATE_FAILURE: ${{ inputs.simulate_failure }}
         run: |
           echo "=== T2D earnings_cache.json builder ==="
           python build_earnings_cache.py
@@ -85,4 +94,56 @@ jobs:
           else
             git commit -m "Update earnings cache and history [CI]"
             git push
+          fi
+
+      # On failure: open (or add to) an issue that @mentions the owner, so
+      # GitHub emails a plain-English explanation. One open issue at a time.
+      - name: Email owner about the failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          TITLE="Earnings calendar update failed"
+
+          LAST_GOOD=$(gh api "repos/$GH_REPO/commits?path=earnings_latest.json&per_page=1" \
+            --jq '.[0].commit.committer.date' 2>/dev/null || true)
+          if [ -n "$LAST_GOOD" ]; then
+            LAST_GOOD=$(TZ=America/New_York date -d "$LAST_GOOD" '+%A, %B %-d, %Y')
+          else
+            LAST_GOOD="the last successful update"
+          fi
+
+          {
+            echo "@jmaietta, today's update of the TEK2day Earnings Calendar failed."
+            echo
+            echo "**What went wrong:**"
+            if [ -f build_failure.txt ]; then
+              cat build_failure.txt
+            else
+              echo "A step outside the Alpha Vantage download failed (for example setting up the job or saving the new data). The details link below shows which step."
+            fi
+            echo
+            echo "**What this means:** Nothing was overwritten. The calendar site and Kilby keep using the last good data, from $LAST_GOOD. The update tries again next weekday morning, and you'll get an email when it works again."
+            echo
+            echo "**Details:** $RUN_URL"
+          } > issue_body.md
+
+          NUM=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$NUM" ]; then
+            gh issue comment "$NUM" --body-file issue_body.md
+          else
+            gh issue create --title "$TITLE" --body-file issue_body.md
+          fi
+
+      - name: Email owner when updates work again
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          NUM=$(gh issue list --state open --search "\"Earnings calendar update failed\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$NUM" ]; then
+            gh issue close "$NUM" --comment "@jmaietta, fixed: today's update worked. The calendar site and Kilby have fresh data again."
           fi

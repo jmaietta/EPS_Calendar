@@ -34,6 +34,8 @@ import requests
 
 UNIVERSE_CSV = "eps_calendar_universe.csv"
 CACHE_JSON = "earnings_cache.json"
+# Plain-English reason for a failed run; the workflow emails it to the owner
+FAILURE_NOTE = "build_failure.txt"
 
 HORIZON = "3month"  # 3month | 6month | 12month
 
@@ -57,13 +59,31 @@ MIN_FILTERED_ROWS = 10    # if < this in your universe, refuse to overwrite cach
 
 def require_api_key() -> str:
     if not ALPHAVANTAGE_API_KEY:
-        print(
-            "ERROR: ALPHAVANTAGE_API_KEY is not set.\n"
-            "Set it in your environment or GitHub Actions secret, e.g.:\n"
-            "  export ALPHAVANTAGE_API_KEY='YOUR_KEY_HERE'\n"
+        raise RuntimeError(
+            "The Alpha Vantage API key is missing. It should be saved as the "
+            "ALPHAVANTAGE_API_KEY secret in the repo's GitHub settings."
         )
-        sys.exit(1)
     return ALPHAVANTAGE_API_KEY
+
+
+def hide_api_key(text: str) -> str:
+    """The failure note is posted publicly, so never let the key appear in it."""
+    if ALPHAVANTAGE_API_KEY:
+        text = text.replace(ALPHAVANTAGE_API_KEY, "[hidden]")
+    return text
+
+
+def write_failure_note(e: Exception):
+    if isinstance(e, requests.RequestException):
+        reason = (
+            "The update couldn't get a proper answer from Alpha Vantage "
+            "(their site may have been down, or the network failed). "
+            f"Technical detail: {e}"
+        )
+    else:
+        reason = str(e)
+    with open(FAILURE_NOTE, "w", encoding="utf-8") as f:
+        f.write(hide_api_key(reason) + "\n")
 
 
 def load_universe(path: str) -> List[str]:
@@ -127,7 +147,11 @@ def fetch_earnings_calendar_from_api(api_key: str) -> List[Dict[str, str]]:
         except Exception:
             raise RuntimeError("Provider returned JSON that could not be parsed.")
         msg = obj.get("Note") or obj.get("Error Message") or obj.get("Information") or text
-        raise RuntimeError(f"Provider error: {msg}")
+        raise RuntimeError(
+            "Alpha Vantage refused the request. This usually means the API key "
+            "expired, is invalid, or hit its daily limit. Their message: "
+            f"{msg}"
+        )
 
     # Parse CSV
     buffer = io.StringIO(text)
@@ -225,9 +249,16 @@ def main():
     print(f"Output file  : {CACHE_JSON}")
     print()
 
-    api_key = require_api_key()
-
     try:
+        # Manual test of the failure email; stops before any data is touched
+        if os.environ.get("SIMULATE_FAILURE") == "true":
+            raise RuntimeError(
+                "This is a test of the failure email, started by hand. "
+                "Nothing is actually broken."
+            )
+
+        api_key = require_api_key()
+
         # 1) Load universe
         print("Loading universe…")
         universe = load_universe(UNIVERSE_CSV)
@@ -243,14 +274,15 @@ def main():
         # 4) Sanity check before touching cache
         verify_sanity(raw_rows, filtered_rows)
 
-        # 5) Archive previous + write JSON cache
+        # 5) Write JSON cache
         write_cache_json(filtered_rows, CACHE_JSON)
 
         print("\nDone. New cache written successfully.")
 
     except Exception as e:
         print("\nERROR during earnings cache build:")
-        print(f"  {e}")
+        print(f"  {hide_api_key(str(e))}")
+        write_failure_note(e)
         if os.path.exists(CACHE_JSON):
             print("Keeping existing earnings_cache.json untouched.")
         else:
