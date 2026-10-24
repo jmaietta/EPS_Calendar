@@ -12,8 +12,8 @@ Behavior:
     * Must have enough raw rows
     * Must have enough rows AFTER filtering to your universe
 - ONLY if checks pass:
-    * Archives previous earnings_cache.json to earnings_history/
     * Writes new earnings_cache.json
+    * (The workflow then saves one dated copy per day in earnings_history/)
 - If checks FAIL:
     * Prints clear error
     * DOES NOT touch existing earnings_cache.json
@@ -26,7 +26,6 @@ import io
 import json
 import os
 import sys
-from datetime import datetime
 from typing import List, Dict
 
 import requests
@@ -35,7 +34,6 @@ import requests
 
 UNIVERSE_CSV = "eps_calendar_universe.csv"
 CACHE_JSON = "earnings_cache.json"
-ARCHIVE_DIR = "earnings_history"
 
 HORIZON = "3month"  # 3month | 6month | 12month
 
@@ -209,43 +207,11 @@ def verify_sanity(raw_rows: List[Dict], filtered_rows: List[Dict]):
         )
 
 
-def archive_previous_cache(current_path: str):
-    """
-    If an existing earnings_cache.json is present, copy it into
-    earnings_history/earnings_cache_<timestamp>.json before overwriting.
-    """
-    if not os.path.exists(current_path):
-        return
-
-    os.makedirs(ARCHIVE_DIR, exist_ok=True)
-
-    try:
-        with open(current_path, "r", encoding="utf-8") as f:
-            old_data = json.load(f)
-    except Exception:
-        with open(current_path, "r", encoding="utf-8") as f:
-            old_text = f.read()
-        old_data = old_text
-
-    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-    archive_name = f"earnings_cache_{stamp}.json"
-    archive_path = os.path.join(ARCHIVE_DIR, archive_name)
-
-    with open(archive_path, "w", encoding="utf-8") as af:
-        if isinstance(old_data, (dict, list)):
-            json.dump(old_data, af, ensure_ascii=False)
-        else:
-            af.write(str(old_data))
-
-    print(f"Archived previous cache to {archive_path}")
-
-
 def write_cache_json(rows: List[Dict], path: str):
     """
-    Archive previous cache (if any), then write new earnings_cache.json.
+    Write new earnings_cache.json. The workflow keeps the one dated
+    history copy per day, so no second archive copy is written here.
     """
-    archive_previous_cache(path)
-
     with open(path, "w", encoding="utf-8") as f:
         json.dump(rows, f, ensure_ascii=False)
     print(f"Wrote {len(rows)} rows to {path}")
@@ -257,7 +223,6 @@ def main():
     print("=== T2D earnings_cache.json builder ===")
     print(f"Universe file : {UNIVERSE_CSV}")
     print(f"Output file  : {CACHE_JSON}")
-    print(f"Archive dir  : {ARCHIVE_DIR}")
     print()
 
     api_key = require_api_key()

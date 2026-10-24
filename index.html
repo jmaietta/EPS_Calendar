@@ -1094,6 +1094,16 @@
         return new Date(y, m - 1, d);
       }
 
+      // Treat data-feed text as plain text, never as HTML
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
       function renderTable(rows) {
         if (!rows.length) {
           dom.tbody.innerHTML =
@@ -1122,9 +1132,9 @@
 
             return `
               <tr>
-                <td class="ticker-cell mono">${r.symbol}</td>
-                <td class="name-cell">${r.name || "&nbsp;"}</td>
-                <td class="date-cell">${label}</td>
+                <td class="ticker-cell mono">${escapeHtml(r.symbol)}</td>
+                <td class="name-cell">${r.name ? escapeHtml(r.name) : "&nbsp;"}</td>
+                <td class="date-cell">${escapeHtml(label)}</td>
                 <td class="right eps-cell ${cls}">${
                   r.estimate
                     ? (est < 0 ? "&minus;" : "") +
@@ -1132,7 +1142,7 @@
                       Math.abs(est).toFixed(2)
                     : "&mdash;"
                 }</td>
-                <td class="right ccy-cell mono">${r.currency || "&mdash;"}</td>
+                <td class="right ccy-cell mono">${r.currency ? escapeHtml(r.currency) : "&mdash;"}</td>
               </tr>
             `;
           })
@@ -1265,7 +1275,7 @@
           dom.tbody.innerHTML =
             '<tr><td colspan="5" style="padding:10px;font-size:0.78rem;color:#fecaca;">' +
             (err && err.message
-              ? "Data error: " + err.message
+              ? "Data error: " + escapeHtml(err.message)
               : "Unknown data error. Check that eps_calendar_universe.csv, earnings_latest.json, and any required files in earnings_history/ are deployed next to this file.") +
             "</td></tr>";
           dom.metaUniverse.textContent = "error";
