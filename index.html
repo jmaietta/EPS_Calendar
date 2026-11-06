@@ -1156,16 +1156,13 @@
 
         let base;
         if (q) {
-          base = state.earningsRaw.filter((row) =>
-            state.universeSet.has(row.symbol)
-          );
+          base = state.earningsRaw.slice();
         } else {
           const targetDateIso = formatIsoDate(
             getTargetDate(state.dayOffset)
           );
           base = state.earningsRaw.filter(
             (row) =>
-              state.universeSet.has(row.symbol) &&
               row.reportDate === targetDateIso
           );
         }
@@ -1259,13 +1256,11 @@
         updateDayUI();
 
         try {
-          setStatus("Loading T2D universe…", "loading");
-          state.universeSet = await loadUniverseTickers();
-          dom.metaUniverse.textContent =
-            state.universeSet.size.toLocaleString();
-
+          // Every company Alpha Vantage returns (Nov 2026); coverage = companies in the latest file.
           setStatus("Loading T2D earnings cache…", "loading");
           state.earningsRaw = await loadEarningsCache();
+          dom.metaUniverse.textContent =
+            new Set(state.earningsRaw.map((r) => r.symbol)).size.toLocaleString();
 
           setStatus("Earnings calendar loaded.", "ok");
           applyFiltersAndRender();

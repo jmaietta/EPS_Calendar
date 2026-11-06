@@ -179,16 +179,17 @@ def build_filtered_rows(universe: List[str], raw_rows: List[Dict[str, str]]) -> 
     """
     Filter provider rows down to your universe and normalize fields.
     """
-    universe_set = set(universe)
+    universe_set = set(universe) if universe is not None else None
 
-    print(f"Filtering into T2D universe ({len(universe)} tickers)…")
+    if universe_set is not None:
+        print(f"Filtering into T2D universe ({len(universe)} tickers)…")
     filtered: List[Dict] = []
 
     for r in raw_rows:
         symbol = (r.get("symbol") or "").strip().upper()
         if not symbol:
             continue
-        if symbol not in universe_set:
+        if universe_set is not None and symbol not in universe_set:
             continue
 
         report_date = (r.get("reportDate") or "").strip()
@@ -259,10 +260,9 @@ def main():
 
         api_key = require_api_key()
 
-        # 1) Load universe
-        print("Loading universe…")
-        universe = load_universe(UNIVERSE_CSV)
-        print(f"Loaded universe of {len(universe)} tickers.")
+        # 1) No company list (owner, Nov 5 2026: "I want more ticker coverage"): every
+        #    company Alpha Vantage returns is kept. eps_calendar_universe.csv is no longer read.
+        universe = None
 
         # 2) Fetch calendar once
         print("Fetching earnings calendar…")
